@@ -1,26 +1,330 @@
 @import "tailwindcss";
 
+/* =========================
+   Design tokens - Light theme
+   ========================= */
 :root {
+  /* Base colors */
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #0a0a0a;
+  
+  /* Surface colors */
+  --surface: #ffffff;
+  --card: #ffffff;
+  --card-foreground: #0a0a0a;
+  
+  /* UI colors */
+  --primary: #0a0a0a;
+  --primary-foreground: #ffffff;
+  --secondary: #f5f5f5;
+  --secondary-foreground: #262626;
+  --muted: #f5f5f5;
+  --muted-foreground: #737373;
+
+  /* Accent */
+  --accent: #2563eb;
+  --accent-foreground: #ffffff;
+  --accent-soft: rgba(37, 99, 235, 0.08);
+  
+  /* Borders */
+  --border: #e5e5e5;
+  --input: #ffffff;
+  --ring: #0a0a0a;
+  
+  /* Effects */
+  --radius: 0.75rem;
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.05);
+  --shadow: 0 2px 4px rgb(0 0 0 / 0.08);
+  --shadow-md: 0 6px 12px rgb(0 0 0 / 0.1);
+  
+  /* Typography */
+  --font-sans: var(--font-inter);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* =========================
+   Dark theme
+   ========================= */
+.dark {
+  --background: #0a0a0a;
+  --foreground: #fafafa;
+  
+  --surface: #171717;
+  --card: #171717;
+  --card-foreground: #fafafa;
+  
+  --primary: #fafafa;
+  --primary-foreground: #171717;
+  --secondary: #262626;
+  --secondary-foreground: #f5f5f5;
+  --muted: #262626;
+  --muted-foreground: #a3a3a3;
+  
+  --accent: #3b82f6;
+  --accent-foreground: #ffffff;
+  
+  --border: #262626;
+  --input: #262626;
+  --ring: #d4d4d4;
+  
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.15);
+  --shadow: 0 2px 4px rgb(0 0 0 / 0.2);
+  --shadow-md: 0 6px 12px rgb(0 0 0 / 0.25);
 }
 
-@media (prefers-color-scheme: dark) {
+/* =========================
+   Tailwind Theme Configuration
+   ========================= */
+@layer base {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --color-background: var(--background);
+    --color-foreground: var(--foreground);
+    --color-surface: var(--surface);
+    --color-card: var(--card);
+    --color-card-foreground: var(--card-foreground);
+    --color-primary: var(--primary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-secondary: var(--secondary);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-muted: var(--muted);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-accent: var(--accent);
+    --color-accent-foreground: var(--accent-foreground);
+    --color-border: var(--border);
+    --color-input: var(--input);
+    --color-ring: var(--ring);
+    
+    --radius-lg: var(--radius);
+    --radius-md: calc(var(--radius) - 0.125rem);
+    --radius-sm: calc(var(--radius) - 0.25rem);
+    
+    --font-sans: var(--font-sans);
+    
+    --shadow-sm: var(--shadow-sm);
+    --shadow: var(--shadow);
+    --shadow-md: var(--shadow-md);
   }
 }
 
+/* =========================
+   Base styles
+   ========================= */
 body {
+  min-height: 100vh;
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* =========================
+   Theme Toggle Button Specific Styles
+   ========================= */
+.theme-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.theme-toggle-btn:hover {
+  color: var(--foreground);
+  border-color: var(--foreground);
+  background: var(--muted);
+}
+
+.theme-toggle-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* =========================
+   Typography
+   ========================= */
+h1, h2, h3 {
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+h1 { font-size: 2rem; }
+h2 { font-size: 1.5rem; }
+h3 { font-size: 1.25rem; }
+
+p {
+  line-height: 1.75;
+}
+
+/* =========================
+   Links
+   ========================= */
+a {
+  color: inherit;
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+a:hover {
+  color: var(--accent);
+}
+
+/* =========================
+   Forms
+   ========================= */
+input,
+select,
+textarea {
+  width: 100%;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+  color: var(--foreground);
+  font-size: 0.875rem;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+input::placeholder {
+  color: var(--muted-foreground);
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent);
+}
+
+/* =========================
+   Buttons
+   ========================= */
+button {
+  padding: 0.6rem 1.2rem;
+  border-radius: var(--radius);
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: var(--primary-foreground);
+  border-color: var(--primary);
+}
+
+.btn-primary:hover {
+  background: color-mix(in srgb, var(--primary) 90%, transparent);
+}
+
+.btn-secondary {
+  background: var(--secondary);
+  color: var(--secondary-foreground);
+  border: 1px solid var(--border);
+}
+
+.btn-secondary:hover {
+  background: color-mix(in srgb, var(--secondary) 90%, transparent);
+}
+
+/* =========================
+   Layout helpers
+   ========================= */
+.container {
+  width: 100%;
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+/* =========================
+   Cards
+   ========================= */.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 1.5rem;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.15s ease;
+}
+
+.card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.soft-accent {
+  background: var(--accent-soft);
+  border-left: 3px solid var(--accent);
+}
+
+
+/* =========================
+   Utility classes
+   ========================= */
+.text-muted {
+  color: var(--muted-foreground);
+}
+
+/* =========================
+   Focus visible
+   ========================= */
+*:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+/* =========================
+   Scrollbar
+   ========================= */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--background);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--muted-foreground);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out;
+}
+
+.section-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 1.5rem 0;
 }

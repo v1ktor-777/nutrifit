@@ -24,7 +24,7 @@ export default function RootLayout({
     <html lang="en" className={inter.variable} suppressHydrationWarning>
       <body className="min-h-screen bg-background text-foreground antialiased">
         <Providers>
-          <div className="min-h-screen flex flex-col">
+          <div className="min-h-screen flex flex-col gap-6">
             <Navbar />
             <main className="flex-1 container py-8">{children}</main>
             <footer className="border-t border-border py-6">

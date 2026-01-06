@@ -2,12 +2,23 @@
 
 import { useEffect, useState } from "react";
 
+function todayISO() {
+  return new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+}
+
 export default function ProgramPage() {
   const [program, setProgram] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [highlightPreview, setHighlightPreview] = useState(false);
 
-  const [todayLog, setTodayLog] = useState<any>(null);
+  // ✅ избрана дата (по подразбиране днес)
+  const [selectedDate, setSelectedDate] = useState<string>(todayISO());
+
+  // ✅ log за избраната дата (не само за днес)
+  const [dayLog, setDayLog] = useState<any>(null);
+
+  // ✅ масив с дати с тренировки (последни 7 дни)
+  const [workoutDates, setWorkoutDates] = useState<string[]>([]);
 
   // ✅ показваме "кликна ли" + грешка
   const [savingDay, setSavingDay] = useState<string | null>(null);
@@ -90,25 +101,50 @@ export default function ProgramPage() {
     }
   };
 
-  const loadTodayWorkout = async () => {
+  // ✅ взима log за избраната дата
+  const loadWorkoutForDate = async (date: string) => {
     try {
-      const res = await fetch("/api/workout-log");
+      const res = await fetch(`/api/workout-log?date=${encodeURIComponent(date)}`);
       if (!res.ok) {
-        setTodayLog(null);
+        setDayLog(null);
         return;
       }
       const json = await res.json();
-      setTodayLog(json?.data ?? null);
+      setDayLog(json?.data ?? null);
     } catch (err) {
-      console.error("Load today workout error:", err);
-      setTodayLog(null);
+      console.error("Load workout for date error:", err);
+      setDayLog(null);
+    }
+  };
+
+  // ✅ взима списък с дати за последните 7 дни
+  const loadWorkoutDates = async () => {
+    try {
+      const res = await fetch("/api/workout-log?days=7");
+      if (!res.ok) {
+        setWorkoutDates([]);
+        return;
+      }
+      const json = await res.json();
+      setWorkoutDates(Array.isArray(json?.dates) ? json.dates : []);
+    } catch (err) {
+      console.error("Load workout dates error:", err);
+      setWorkoutDates([]);
     }
   };
 
   useEffect(() => {
     loadProgram();
-    loadTodayWorkout();
+    loadWorkoutDates();
+    loadWorkoutForDate(selectedDate);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // когато смениш дата -> reload log
+  useEffect(() => {
+    loadWorkoutForDate(selectedDate);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedDate]);
 
   /* ======================
      GENERATE PROGRAM
@@ -139,7 +175,8 @@ export default function ProgramPage() {
       }
 
       setProgram(data);
-      await loadTodayWorkout();
+      await loadWorkoutDates();
+      await loadWorkoutForDate(selectedDate);
     } catch (err) {
       console.error("Generate error:", err);
       alert("Възникна грешка.");
@@ -152,7 +189,7 @@ export default function ProgramPage() {
      WORKOUT LOG ACTIONS
      ====================== */
 
-  // Mark / Switch (POST)
+  // Mark / Switch (POST) — за избраната дата
   const saveWorkout = async (day: any) => {
     setSaveError(null);
     setSavingDay(day.day);
@@ -166,6 +203,7 @@ export default function ProgramPage() {
           focus: day.focus,
           minutes: 60,
           caloriesOut: 300,
+          date: selectedDate, // ✅ ключово
         }),
       });
 
@@ -179,7 +217,8 @@ export default function ProgramPage() {
         return;
       }
 
-      await loadTodayWorkout();
+      await loadWorkoutForDate(selectedDate);
+      await loadWorkoutDates();
     } catch (err: any) {
       setSaveError(`Fetch error: ${err?.message ?? String(err)}`);
     } finally {
@@ -187,13 +226,16 @@ export default function ProgramPage() {
     }
   };
 
-  // Unmark (DELETE)
-  const unmarkToday = async () => {
+  // Unmark (DELETE) — за избраната дата
+  const unmarkSelectedDate = async () => {
     setSaveError(null);
     setSavingDay("UNMARK");
 
     try {
-      const res = await fetch("/api/workout-log", { method: "DELETE" });
+      const res = await fetch(
+        `/api/workout-log?date=${encodeURIComponent(selectedDate)}`,
+        { method: "DELETE" }
+      );
 
       let text = "";
       try {
@@ -205,7 +247,8 @@ export default function ProgramPage() {
         return;
       }
 
-      await loadTodayWorkout();
+      await loadWorkoutForDate(selectedDate);
+      await loadWorkoutDates();
     } catch (err: any) {
       setSaveError(`Fetch error: ${err?.message ?? String(err)}`);
     } finally {
@@ -216,6 +259,8 @@ export default function ProgramPage() {
   /* ======================
      UI
      ====================== */
+
+  const isSelectedDateMarked = workoutDates.includes(selectedDate);
 
   return (
     <div className="max-w-5xl space-y-14">
@@ -315,6 +360,35 @@ export default function ProgramPage() {
             </button>
           </div>
 
+          {/* ✅ избираш дата за маркиране */}
+          <div className="card flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div className="space-y-1">
+              <p className="font-medium">Маркирай тренировка за дата</p>
+              <p className="text-sm text-muted">
+                Последни 7 дни: {isSelectedDateMarked ? "✔ има тренировка" : "няма тренировка"}
+              </p>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <input
+                type="date"
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
+              />
+
+              {isSelectedDateMarked && (
+                <button
+                  type="button"
+                  disabled={Boolean(savingDay)}
+                  className="btn-secondary"
+                  onClick={() => void unmarkSelectedDate()}
+                >
+                  {savingDay === "UNMARK" ? "Махане..." : "Махни отметката"}
+                </button>
+              )}
+            </div>
+          </div>
+
           {saveError && (
             <div className="card border border-red-300 bg-red-50 text-red-700 text-sm">
               {saveError}
@@ -322,9 +396,11 @@ export default function ProgramPage() {
           )}
 
           {program.plan.map((day: any, idx: number) => {
-            const isThisDayCompleted = todayLog?.day === day.day;
-            const hasAnyToday = Boolean(todayLog);
-            const canSwitch = hasAnyToday && !isThisDayCompleted;
+            // ✅ за избраната дата
+            const isThisDayCompletedForSelectedDate = dayLog?.day === day.day && isSelectedDateMarked;
+
+            const hasAnyForSelectedDate = Boolean(dayLog) && isSelectedDateMarked;
+            const canSwitch = hasAnyForSelectedDate && !isThisDayCompletedForSelectedDate;
 
             const isSavingThis = savingDay === day.day;
             const isUnmarking = savingDay === "UNMARK";
@@ -345,17 +421,17 @@ export default function ProgramPage() {
 
                 {/* ✅ ACTIONS */}
                 <div className="flex items-center gap-3">
-                  {isThisDayCompleted ? (
+                  {isThisDayCompletedForSelectedDate ? (
                     <>
                       <span className="text-green-700 text-sm font-medium">
-                        ✔ Тренировката е записана
+                        ✔ Записано за {selectedDate}
                       </span>
 
                       <button
                         type="button"
                         disabled={Boolean(savingDay)}
                         className="btn-secondary"
-                        onClick={() => void unmarkToday()}
+                        onClick={() => void unmarkSelectedDate()}
                       >
                         {isUnmarking ? "Махане..." : "Махни отметката"}
                       </button>
@@ -388,4 +464,3 @@ export default function ProgramPage() {
     </div>
   );
 }
-    

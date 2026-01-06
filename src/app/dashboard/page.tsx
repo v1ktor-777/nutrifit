@@ -11,6 +11,9 @@ type DashboardData = {
   todayFat: number;
   workoutToday: boolean;
   workoutsThisWeek: number;
+
+  // ✅ НОВО: дати (YYYY-MM-DD) за последните 7 дни с тренировка
+  workoutDates: string[];
 };
 
 type WeeklyStat = {
@@ -46,9 +49,7 @@ export default function DashboardPage() {
       {/* HEADER */}
       <header className="space-y-2">
         <h1 className="text-3xl font-semibold tracking-tight">Табло</h1>
-        <p className="text-muted">
-          Обобщение на активността ти
-        </p>
+        <p className="text-muted">Обобщение на активността ти</p>
       </header>
 
       {/* CARDS */}
@@ -57,12 +58,11 @@ export default function DashboardPage() {
         <div className="card space-y-2">
           <p className="text-sm text-muted">Калории днес</p>
 
-          <p className="text-2xl font-semibold">
-            {data.todayCalories} kcal
-          </p>
+          <p className="text-2xl font-semibold">{data.todayCalories} kcal</p>
 
           <p className="text-sm text-muted">
-            P: {data.todayProtein}g • C: {data.todayCarbs}g • F: {data.todayFat}g
+            P: {data.todayProtein}g • C: {data.todayCarbs}g • F: {data.todayFat}
+            g
           </p>
 
           <span className="inline-block text-xs px-2 py-1 rounded bg-muted">
@@ -97,9 +97,7 @@ export default function DashboardPage() {
         <div className="card space-y-2">
           <p className="text-sm text-muted">Тренировки тази седмица</p>
 
-          <p className="text-2xl font-semibold">
-            {data.workoutsThisWeek}
-          </p>
+          <p className="text-2xl font-semibold">{data.workoutsThisWeek}</p>
 
           <span className="inline-block text-xs px-2 py-1 rounded bg-muted">
             Последни 7 дни
@@ -107,16 +105,32 @@ export default function DashboardPage() {
         </div>
       </div>
 
+      {/* ✅ WORKOUT DAYS (LAST 7 DAYS) */}
+      <div className="card space-y-3">
+        <p className="text-sm text-muted">Дни с тренировка (последни 7 дни)</p>
+
+        {data.workoutDates && data.workoutDates.length > 0 ? (
+          <div className="flex flex-wrap gap-2">
+            {data.workoutDates.map((date) => (
+              <span
+                key={date}
+                className="inline-block text-xs px-2 py-1 rounded bg-green-100 text-green-700"
+              >
+                ✔ {date}
+              </span>
+            ))}
+          </div>
+        ) : (
+          <p className="text-sm text-muted">Няма записани тренировки</p>
+        )}
+      </div>
+
       {/* WEEKLY CHART */}
       <div className="card space-y-4">
-        <h2 className="text-lg font-semibold">
-          Последните 7 дни
-        </h2>
+        <h2 className="text-lg font-semibold">Последните 7 дни</h2>
 
         {weekly.length === 0 ? (
-          <p className="text-muted text-sm">
-            Няма данни за периода
-          </p>
+          <p className="text-muted text-sm">Няма данни за периода</p>
         ) : (
           <WeeklyChart data={weekly} />
         )}

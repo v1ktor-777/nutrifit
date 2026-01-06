@@ -4,7 +4,7 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { connectDB } from "@/lib/db/mongodb";
 import Food from "@/models/Food";
 import WorkoutLog from "@/models/WorkoutLog";
-import { startOfDayUTC, addDaysUTC } from "@/lib/datetime";
+import { startOfDayUTC, addDaysUTC, isoDay } from "@/lib/datetime";
 
 export async function GET() {
   const session = await getServerSession(authOptions);
@@ -48,6 +48,23 @@ export async function GET() {
     dayKey: { $gte: startWeek, $lt: tomorrow },
   });
 
+  // ✅ NEW: workout dates array (последни 30 дни)
+  const start6 = addDaysUTC(today, -6); // inclusive (today included => 30 days)
+  const workoutDaysDocs = await WorkoutLog.find(
+    {
+      userId: userObjectId,
+      dayKey: { $gte: start6, $lt: tomorrow },
+      completedAt: { $ne: null }, // само завършени (ако искаш всички, махни този ред)
+    },
+    { dayKey: 1, _id: 0 }
+  )
+    .sort({ dayKey: 1 })
+    .lean();
+
+  const workoutDates = workoutDaysDocs.map((x: any) =>
+    isoDay(new Date(x.dayKey))
+  );
+
   return Response.json({
     todayCalories: todayTotals.calories ?? 0,
     todayProtein: todayTotals.protein ?? 0,
@@ -55,5 +72,8 @@ export async function GET() {
     todayFat: todayTotals.fat ?? 0,
     workoutToday: Boolean(workoutToday),
     workoutsThisWeek,
+
+    // ✅ NEW: масив с дати (YYYY-MM-DD) в които има тренировка
+    workoutDates,
   });
 }

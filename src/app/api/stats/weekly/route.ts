@@ -4,6 +4,7 @@ import { connectDB } from "@/lib/db/mongodb";
 import Food from "@/models/Food";
 import Workout from "@/models/Workout";
 import { startOfDayUTC, addDaysUTC, isoDay } from "@/lib/datetime";
+import { ObjectId } from "mongodb";
 
 export async function GET() {
   try {
@@ -16,7 +17,10 @@ export async function GET() {
 
     // --- FOOD AGG ---
     const foodAgg = await Food.aggregate([
-      { $match: { userId, dayKey: { $gte: start, $lt: end } } },
+      { $match: {
+        userId: new ObjectId(userId),
+        dayKey: { $gte: start, $lt: end }
+      } },
       {
         $group: {
           _id: "$dayKey",
@@ -27,7 +31,10 @@ export async function GET() {
 
     // --- WORKOUT AGG ---
     const workoutAgg = await Workout.aggregate([
-      { $match: { userId, dayKey: { $gte: start, $lt: end } } },
+      { $match: {
+        userId: new ObjectId(userId),
+        dayKey: { $gte: start, $lt: end }
+      } },
       {
         $group: {
           _id: "$dayKey",
@@ -36,6 +43,7 @@ export async function GET() {
         },
       },
     ]);
+    console.log('foodAgg', foodAgg);
 
     // --- MAP by day ---
     const map: Record<string, any> = {};

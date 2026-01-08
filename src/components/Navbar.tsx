@@ -5,41 +5,52 @@ import { useSession, signOut } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
+import { useI18n } from "@/lib/i18n/LanguageProvider";
 
 export default function Navbar() {
   const { data: session } = useSession();
   const pathname = usePathname();
   const { theme, setTheme } = useTheme();
+  const { lang, setLang, t, mounted: i18nMounted } = useI18n();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // ✅ FIX: hydration mismatch при theme (SSR vs client)
-  const [mounted, setMounted] = useState(false);
+  const [themeMounted, setThemeMounted] = useState(false);
   useEffect(() => {
-    setMounted(true);
+    setThemeMounted(true);
   }, []);
 
-  // Затваряме мобилното меню при смяна на страница
   const closeMobileMenu = () => setMobileMenuOpen(false);
 
   const navLinks = session
     ? [
-        { href: "/dashboard", label: "Dashboard" },
-        { href: "/food", label: "Food" },
-        { href: "/program", label: "Program" },
-        { href: "/progress", label: "Progress" },
-        { href: "/profile", label: "Profile" },
+        { href: "/dashboard", label: t("nav.dashboard") },
+        { href: "/food", label: t("nav.food") },
+        { href: "/program", label: t("nav.program") },
+        { href: "/progress", label: t("nav.progress") },
+        { href: "/profile", label: t("nav.profile") },
       ]
     : [
-        { href: "/login", label: "Login" },
-        { href: "/register", label: "Register" },
+        { href: "/login", label: t("nav.login") },
+        { href: "/register", label: t("nav.register") },
       ];
 
-  const isDark = mounted ? theme === "dark" : false;
+  const isDark = themeMounted ? theme === "dark" : false;
 
   const toggleTheme = () => {
-    if (!mounted) return;
+    if (!themeMounted) return;
     setTheme(isDark ? "light" : "dark");
   };
+
+  const toggleLanguage = () => {
+    if (!i18nMounted) return;
+    setLang(lang === "bg" ? "en" : "bg");
+  };
+
+  const languageToggleLabel = i18nMounted
+    ? lang === "bg"
+      ? t("nav.languageToEn")
+      : t("nav.languageToBg")
+    : t("nav.languageToBg");
 
   return (
     <nav className="sticky top-0 z-50 border-b border-border bg-(--background)">
@@ -76,15 +87,30 @@ export default function Navbar() {
             {/* Theme Toggle Button - Desktop */}
             <button
               onClick={toggleTheme}
-              disabled={!mounted}
+              disabled={!themeMounted}
               className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors px-3 py-1.5 border border-border rounded-md hover:border-foreground/30 disabled:opacity-60 disabled:cursor-not-allowed"
               aria-label={
-                mounted
-                  ? `Switch to ${isDark ? "light" : "dark"} mode`
-                  : "Toggle theme"
+                themeMounted
+                  ? isDark
+                    ? t("nav.switchToLight")
+                    : t("nav.switchToDark")
+                  : t("nav.theme")
               }
             >
-              {mounted ? (isDark ? "Light Mode" : "Dark Mode") : "Theme"}
+              {themeMounted
+                ? isDark
+                  ? t("nav.lightMode")
+                  : t("nav.darkMode")
+                : t("nav.theme")}
+            </button>
+
+            <button
+              onClick={toggleLanguage}
+              disabled={!i18nMounted}
+              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors px-3 py-1.5 border border-border rounded-md hover:border-foreground/30 disabled:opacity-60 disabled:cursor-not-allowed"
+              aria-label={t("nav.languageLabel")}
+            >
+              {languageToggleLabel}
             </button>
 
             {session && (
@@ -92,7 +118,7 @@ export default function Navbar() {
                 onClick={() => signOut({ callbackUrl: "/login" })}
                 className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
               >
-                Logout
+                {t("nav.logout")}
               </button>
             )}
           </div>
@@ -102,21 +128,36 @@ export default function Navbar() {
             {/* Theme Toggle for mobile (outside menu) */}
             <button
               onClick={toggleTheme}
-              disabled={!mounted}
+              disabled={!themeMounted}
               className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors px-3 py-1.5 border border-border rounded-md hover:border-foreground/30 disabled:opacity-60 disabled:cursor-not-allowed"
               aria-label={
-                mounted
-                  ? `Switch to ${isDark ? "light" : "dark"} mode`
-                  : "Toggle theme"
+                themeMounted
+                  ? isDark
+                    ? t("nav.switchToLight")
+                    : t("nav.switchToDark")
+                  : t("nav.theme")
               }
             >
-              {mounted ? (isDark ? "Light" : "Dark") : "Theme"}
+              {themeMounted
+                ? isDark
+                  ? t("nav.light")
+                  : t("nav.dark")
+                : t("nav.theme")}
+            </button>
+
+            <button
+              onClick={toggleLanguage}
+              disabled={!i18nMounted}
+              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors px-3 py-1.5 border border-border rounded-md hover:border-foreground/30 disabled:opacity-60 disabled:cursor-not-allowed"
+              aria-label={t("nav.languageLabel")}
+            >
+              {languageToggleLabel}
             </button>
 
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="flex items-center justify-center w-8 h-8 rounded-md hover:bg-muted transition-colors"
-              aria-label="Toggle menu"
+              aria-label={t("nav.toggleMenu")}
             >
               <MenuIcon className="w-5 h-5" />
             </button>
@@ -149,7 +190,7 @@ export default function Navbar() {
                   }}
                   className="px-4 py-2 text-left text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
                 >
-                  Logout
+                  {t("nav.logout")}
                 </button>
               )}
             </div>
@@ -160,7 +201,6 @@ export default function Navbar() {
   );
 }
 
-// SVG иконка за мобилното меню
 function MenuIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg

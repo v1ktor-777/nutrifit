@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useI18n } from "@/lib/i18n/LanguageProvider";
 
 type FoodItem = {
   _id: string;
@@ -12,29 +13,32 @@ type FoodItem = {
   createdAt?: string;
 };
 
-function fmtDate(x?: string) {
+function fmtDate(x?: string, locale?: string) {
   if (!x) return "";
   const d = new Date(x);
-  return d.toLocaleString();
+  return d.toLocaleString(locale || undefined);
+}
+
+function formatMessage(template: string, vars: Record<string, string | number>) {
+  return template.replace(/\{(\w+)\}/g, (_, key) =>
+    Object.prototype.hasOwnProperty.call(vars, key) ? String(vars[key]) : `{${key}}`
+  );
 }
 
 export default function FoodPage() {
-  // form
+  const { t, lang } = useI18n();
   const [calories, setCalories] = useState("");
   const [protein, setProtein] = useState("");
   const [carbs, setCarbs] = useState("");
   const [fat, setFat] = useState("");
 
-  // list
   const [items, setItems] = useState<FoodItem[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // ui states
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [okMsg, setOkMsg] = useState<string | null>(null);
 
-  // edit state
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editDraft, setEditDraft] = useState<Partial<FoodItem>>({});
 
@@ -46,10 +50,10 @@ export default function FoodPage() {
     try {
       const res = await fetch("/api/food");
       const json = await res.json();
-      if (!res.ok) throw new Error(json?.error ?? "Load failed");
+      if (!res.ok) throw new Error(json?.error ?? t("food.loadFailed"));
       setItems(json?.items ?? []);
     } catch (e: any) {
-      setError(e?.message ?? "Грешка при зареждане.");
+      setError(e?.message ?? t("food.loadFailed"));
     } finally {
       setLoading(false);
     }
@@ -63,7 +67,7 @@ export default function FoodPage() {
     setError(null);
     setOkMsg(null);
     if (!canSubmit) {
-      setError("Калориите трябва да са > 0.");
+      setError(t("food.invalidCalories"));
       return;
     }
 
@@ -81,17 +85,17 @@ export default function FoodPage() {
       });
 
       const json = await res.json();
-      if (!res.ok) throw new Error(json?.error ?? "Save failed");
+      if (!res.ok) throw new Error(json?.error ?? t("food.saveFailed"));
 
       setCalories("");
       setProtein("");
       setCarbs("");
       setFat("");
 
-      setOkMsg("Записано ✅");
+      setOkMsg(t("food.saved"));
       await load();
     } catch (e: any) {
-      setError(e?.message ?? "Грешка при запис.");
+      setError(e?.message ?? t("food.saveFailed"));
     } finally {
       setSaving(false);
     }
@@ -120,7 +124,7 @@ export default function FoodPage() {
 
     const cals = Number(editDraft.calories);
     if (!Number.isFinite(cals) || cals <= 0) {
-      setError("Калориите трябва да са > 0.");
+      setError(t("food.invalidCalories"));
       return;
     }
 
@@ -138,13 +142,13 @@ export default function FoodPage() {
       });
 
       const json = await res.json();
-      if (!res.ok) throw new Error(json?.error ?? "Edit failed");
+      if (!res.ok) throw new Error(json?.error ?? t("food.editFailed"));
 
-      setOkMsg("Запазено ✅");
+      setOkMsg(t("food.updated"));
       cancelEdit();
       await load();
     } catch (e: any) {
-      setError(e?.message ?? "Грешка при edit.");
+      setError(e?.message ?? t("food.editFailed"));
     } finally {
       setSaving(false);
     }
@@ -154,19 +158,18 @@ export default function FoodPage() {
     setError(null);
     setOkMsg(null);
 
-    if (!confirm("Сигурен ли си, че искаш да изтриеш записа?")) return;
+    if (!confirm(t("food.confirmDelete"))) return;
 
     setSaving(true);
     try {
-      console.log(id)
       const res = await fetch(`/api/food/${id}`, { method: "DELETE" });
       const json = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(json?.error ?? "Delete failed");
+      if (!res.ok) throw new Error(json?.error ?? t("food.deleteFailed"));
 
-      setOkMsg("Изтрито ✅");
+      setOkMsg(t("food.deleted"));
       await load();
     } catch (e: any) {
-      setError(e?.message ?? "Неуспешно изтриване.");
+      setError(e?.message ?? t("food.deleteFailed"));
     } finally {
       setSaving(false);
     }
@@ -174,53 +177,51 @@ export default function FoodPage() {
 
   return (
     <div className="space-y-10 max-w-4xl">
-      <h1 className="text-2xl font-semibold">Food Log</h1>
+      <h1 className="text-2xl font-semibold">{t("food.title")}</h1>
 
-      {/* FORM */}
       <div className="card space-y-4">
         <div className="grid md:grid-cols-2 gap-4">
           <input
             type="number"
-            placeholder="Calories"
+            placeholder={t("food.caloriesPlaceholder")}
             value={calories}
             onChange={(e) => setCalories(e.target.value)}
           />
           <input
             type="number"
-            placeholder="Protein (g)"
+            placeholder={t("food.proteinPlaceholder")}
             value={protein}
             onChange={(e) => setProtein(e.target.value)}
           />
           <input
             type="number"
-            placeholder="Carbs (g)"
+            placeholder={t("food.carbsPlaceholder")}
             value={carbs}
             onChange={(e) => setCarbs(e.target.value)}
           />
           <input
             type="number"
-            placeholder="Fat (g)"
+            placeholder={t("food.fatPlaceholder")}
             value={fat}
             onChange={(e) => setFat(e.target.value)}
           />
         </div>
 
         <button className="btn-primary w-fit" onClick={submit} disabled={saving || !canSubmit}>
-          {saving ? "Saving..." : "Add entry"}
+          {saving ? t("food.saving") : t("food.addEntry")}
         </button>
 
         {error && <p className="text-red-600 text-sm">{error}</p>}
         {okMsg && <p className="text-green-600 text-sm">{okMsg}</p>}
       </div>
 
-      {/* LIST */}
       <div className="card space-y-4">
-        <h2 className="text-lg font-semibold">Последни записи</h2>
+        <h2 className="text-lg font-semibold">{t("food.listTitle")}</h2>
 
         {loading ? (
-          <p className="text-muted text-sm">Зареждане...</p>
+          <p className="text-muted text-sm">{t("common.loading")}</p>
         ) : items.length === 0 ? (
-          <p className="text-muted text-sm">Няма записи.</p>
+          <p className="text-muted text-sm">{t("food.listEmpty")}</p>
         ) : (
           <div className="space-y-4">
             {items.map((it) => {
@@ -230,13 +231,19 @@ export default function FoodPage() {
                 <div key={it._id} className="border-b border-border pb-4">
                   <div className="flex items-start justify-between gap-4">
                     <div className="space-y-1">
-                      <p className="text-sm text-muted">{fmtDate(it.date ?? it.createdAt)}</p>
+                      <p className="text-sm text-muted">
+                        {fmtDate(it.date ?? it.createdAt, lang)}
+                      </p>
 
                       {!isEditing ? (
                         <>
                           <p className="font-semibold">{it.calories} kcal</p>
                           <p className="text-sm">
-                            P: {it.protein}g • C: {it.carbs}g • F: {it.fat}g
+                            {formatMessage(t("food.macros"), {
+                              protein: it.protein,
+                              carbs: it.carbs,
+                              fat: it.fat,
+                            })}
                           </p>
                         </>
                       ) : (
@@ -244,33 +251,45 @@ export default function FoodPage() {
                           <input
                             type="number"
                             value={String(editDraft.calories ?? "")}
-                            placeholder="Calories"
+                            placeholder={t("food.caloriesPlaceholder")}
                             onChange={(e) =>
-                              setEditDraft((p) => ({ ...p, calories: Number(e.target.value) }))
+                              setEditDraft((p) => ({
+                                ...p,
+                                calories: Number(e.target.value),
+                              }))
                             }
                           />
                           <input
                             type="number"
                             value={String(editDraft.protein ?? "")}
-                            placeholder="Protein"
+                            placeholder={t("food.proteinPlaceholder")}
                             onChange={(e) =>
-                              setEditDraft((p) => ({ ...p, protein: Number(e.target.value) }))
+                              setEditDraft((p) => ({
+                                ...p,
+                                protein: Number(e.target.value),
+                              }))
                             }
                           />
                           <input
                             type="number"
                             value={String(editDraft.carbs ?? "")}
-                            placeholder="Carbs"
+                            placeholder={t("food.carbsPlaceholder")}
                             onChange={(e) =>
-                              setEditDraft((p) => ({ ...p, carbs: Number(e.target.value) }))
+                              setEditDraft((p) => ({
+                                ...p,
+                                carbs: Number(e.target.value),
+                              }))
                             }
                           />
                           <input
                             type="number"
                             value={String(editDraft.fat ?? "")}
-                            placeholder="Fat"
+                            placeholder={t("food.fatPlaceholder")}
                             onChange={(e) =>
-                              setEditDraft((p) => ({ ...p, fat: Number(e.target.value) }))
+                              setEditDraft((p) => ({
+                                ...p,
+                                fat: Number(e.target.value),
+                              }))
                             }
                           />
                         </div>
@@ -280,20 +299,36 @@ export default function FoodPage() {
                     <div className="flex flex-col items-end gap-2 min-w-30">
                       {!isEditing ? (
                         <>
-                          <button className="btn-secondary" onClick={() => startEdit(it)} disabled={saving}>
-                            Edit
+                          <button
+                            className="btn-secondary"
+                            onClick={() => startEdit(it)}
+                            disabled={saving}
+                          >
+                            {t("common.edit")}
                           </button>
-                          <button className="btn-secondary" onClick={() => deleteItem(it._id)} disabled={saving}>
-                            Delete
+                          <button
+                            className="btn-secondary"
+                            onClick={() => deleteItem(it._id)}
+                            disabled={saving}
+                          >
+                            {t("common.delete")}
                           </button>
                         </>
                       ) : (
                         <>
-                          <button className="btn-primary" onClick={() => saveEdit(it._id)} disabled={saving}>
-                            Save
+                          <button
+                            className="btn-primary"
+                            onClick={() => saveEdit(it._id)}
+                            disabled={saving}
+                          >
+                            {t("common.save")}
                           </button>
-                          <button className="btn-secondary" onClick={cancelEdit} disabled={saving}>
-                            Cancel
+                          <button
+                            className="btn-secondary"
+                            onClick={cancelEdit}
+                            disabled={saving}
+                          >
+                            {t("common.cancel")}
                           </button>
                         </>
                       )}

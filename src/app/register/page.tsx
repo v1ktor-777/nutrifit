@@ -2,9 +2,11 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useI18n } from "@/lib/i18n/LanguageProvider";
 
 export default function RegisterPage() {
   const router = useRouter();
+  const { t } = useI18n();
 
   const [form, setForm] = useState({
     name: "",
@@ -28,18 +30,18 @@ export default function RegisterPage() {
     if (res.ok) {
       router.push("/login");
     } else {
-      alert("Registration failed");
+      alert(t("auth.registerFailed"));
     }
   };
 
   return (
     <div style={{ padding: 24 }}>
-      <h1>Register</h1>
+      <h1>{t("auth.register")}</h1>
 
       <form onSubmit={handleSubmit}>
         <input
           name="name"
-          placeholder="Name"
+          placeholder={t("auth.name")}
           value={form.name}
           onChange={handleChange}
         />
@@ -47,7 +49,7 @@ export default function RegisterPage() {
 
         <input
           name="email"
-          placeholder="Email"
+          placeholder={t("auth.email")}
           value={form.email}
           onChange={handleChange}
         />
@@ -56,13 +58,13 @@ export default function RegisterPage() {
         <input
           type="password"
           name="password"
-          placeholder="Password"
+          placeholder={t("auth.password")}
           value={form.password}
           onChange={handleChange}
         />
         <br />
 
-        <button type="submit">Register</button>
+        <button type="submit">{t("auth.register")}</button>
       </form>
     </div>
   );

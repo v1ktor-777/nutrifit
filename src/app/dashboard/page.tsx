@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import WeeklyChart from "@/components/WeeklyChart";
+import { useI18n } from "@/lib/i18n/LanguageProvider";
 
 type DashboardData = {
   todayCalories: number;
@@ -11,8 +12,6 @@ type DashboardData = {
   todayFat: number;
   workoutToday: boolean;
   workoutsThisWeek: number;
-
-  // ✅ НОВО: дати (YYYY-MM-DD) за последните 7 дни с тренировка
   workoutDates: string[];
 };
 
@@ -24,7 +23,14 @@ type WeeklyStat = {
   net: number;
 };
 
+function formatMessage(template: string, vars: Record<string, string | number>) {
+  return template.replace(/\{(\w+)\}/g, (_, key) =>
+    Object.prototype.hasOwnProperty.call(vars, key) ? String(vars[key]) : `{${key}}`
+  );
+}
+
 export default function DashboardPage() {
+  const { t } = useI18n();
   const [data, setData] = useState<DashboardData | null>(null);
   const [weekly, setWeekly] = useState<WeeklyStat[]>([]);
   const [loading, setLoading] = useState(true);
@@ -41,45 +47,48 @@ export default function DashboardPage() {
   }, []);
 
   if (loading || !data) {
-    return <p className="text-muted">Зареждане...</p>;
+    return <p className="text-muted">{t("common.loading")}</p>;
   }
 
   return (
     <div className="space-y-10 max-w-5xl">
-      {/* HEADER */}
       <header className="space-y-2">
-        <h1 className="text-3xl font-semibold tracking-tight">Табло</h1>
-        <p className="text-muted">Обобщение на активността ти</p>
+        <h1 className="text-3xl font-semibold tracking-tight">
+          {t("dashboard.title")}
+        </h1>
+        <p className="text-muted">{t("dashboard.subtitle")}</p>
       </header>
 
-      {/* CARDS */}
       <div className="grid md:grid-cols-3 gap-6">
-        {/* Calories Today */}
         <div className="card space-y-2">
-          <p className="text-sm text-muted">Калории днес</p>
+          <p className="text-sm text-muted">{t("dashboard.caloriesToday")}</p>
 
           <p className="text-2xl font-semibold">{data.todayCalories} kcal</p>
 
           <p className="text-sm text-muted">
-            P: {data.todayProtein}g • C: {data.todayCarbs}g • F: {data.todayFat}
-            g
+            {formatMessage(t("dashboard.macros"), {
+              protein: data.todayProtein,
+              carbs: data.todayCarbs,
+              fat: data.todayFat,
+            })}
           </p>
 
           <span className="inline-block text-xs px-2 py-1 rounded bg-muted">
-            Днес
+            {t("common.today")}
           </span>
         </div>
 
-        {/* Workout Today */}
         <div className="card space-y-2">
-          <p className="text-sm text-muted">Тренировка днес</p>
+          <p className="text-sm text-muted">{t("dashboard.workoutToday")}</p>
 
           <p
             className={`text-2xl font-semibold ${
               data.workoutToday ? "text-green-600" : "text-muted"
             }`}
           >
-            {data.workoutToday ? "Готово" : "Не е направена"}
+            {data.workoutToday
+              ? t("dashboard.workoutYes")
+              : t("dashboard.workoutNo")}
           </p>
 
           <span
@@ -89,25 +98,25 @@ export default function DashboardPage() {
                 : "bg-muted text-muted-foreground"
             }`}
           >
-            {data.workoutToday ? "✔ Днес" : "Очаква се"}
+            {data.workoutToday
+              ? t("dashboard.workoutYesBadge")
+              : t("dashboard.workoutNoBadge")}
           </span>
         </div>
 
-        {/* Workouts This Week */}
         <div className="card space-y-2">
-          <p className="text-sm text-muted">Тренировки тази седмица</p>
+          <p className="text-sm text-muted">{t("dashboard.workoutsThisWeek")}</p>
 
           <p className="text-2xl font-semibold">{data.workoutsThisWeek}</p>
 
           <span className="inline-block text-xs px-2 py-1 rounded bg-muted">
-            Последни 7 дни
+            {t("dashboard.workoutsWeekBadge")}
           </span>
         </div>
       </div>
 
-      {/* ✅ WORKOUT DAYS (LAST 7 DAYS) */}
       <div className="card space-y-3">
-        <p className="text-sm text-muted">Дни с тренировка (последни 7 дни)</p>
+        <p className="text-sm text-muted">{t("dashboard.workoutDaysTitle")}</p>
 
         {data.workoutDates && data.workoutDates.length > 0 ? (
           <div className="flex flex-wrap gap-2">
@@ -116,37 +125,33 @@ export default function DashboardPage() {
                 key={date}
                 className="inline-block text-xs px-2 py-1 rounded bg-green-100 text-green-700"
               >
-                ✔ {date}
+                ✅ {date}
               </span>
             ))}
           </div>
         ) : (
-          <p className="text-sm text-muted">Няма записани тренировки</p>
+          <p className="text-sm text-muted">{t("dashboard.workoutDaysNone")}</p>
         )}
       </div>
 
-      {/* WEEKLY CHART */}
       <div className="card space-y-4">
-        <h2 className="text-lg font-semibold">Последните 7 дни</h2>
+        <h2 className="text-lg font-semibold">{t("dashboard.chartTitle")}</h2>
 
         {weekly.length === 0 ? (
-          <p className="text-muted text-sm">Няма данни за периода</p>
+          <p className="text-muted text-sm">{t("dashboard.chartEmpty")}</p>
         ) : (
           <WeeklyChart data={weekly} />
         )}
       </div>
 
-      {/* ACTION */}
       <div className="card flex items-center justify-between gap-4">
         <div>
-          <p className="font-medium">Тренировъчна програма</p>
-          <p className="text-sm text-muted">
-            Управлявай и следи активната си програма
-          </p>
+          <p className="font-medium">{t("dashboard.actionTitle")}</p>
+          <p className="text-sm text-muted">{t("dashboard.actionDescription")}</p>
         </div>
 
         <Link href="/program" className="btn-primary px-6 py-3">
-          Към програмата
+          {t("dashboard.actionButton")}
         </Link>
       </div>
     </div>

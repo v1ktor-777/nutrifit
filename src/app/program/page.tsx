@@ -1,26 +1,27 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useI18n } from "@/lib/i18n/LanguageProvider";
 
 function todayISO() {
-  return new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+  return new Date().toISOString().slice(0, 10);
+}
+
+function formatMessage(template: string, vars: Record<string, string | number>) {
+  return template.replace(/\{(\w+)\}/g, (_, key) =>
+    Object.prototype.hasOwnProperty.call(vars, key) ? String(vars[key]) : `{${key}}`
+  );
 }
 
 export default function ProgramPage() {
+  const { t } = useI18n();
   const [program, setProgram] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [highlightPreview, setHighlightPreview] = useState(false);
 
-  // ✅ избрана дата (по подразбиране днес)
   const [selectedDate, setSelectedDate] = useState<string>(todayISO());
-
-  // ✅ log за избраната дата (не само за днес)
   const [dayLog, setDayLog] = useState<any>(null);
-
-  // ✅ масив с дати с тренировки (последни 7 дни)
   const [workoutDates, setWorkoutDates] = useState<string[]>([]);
-
-  // ✅ показваме "кликна ли" + грешка
   const [savingDay, setSavingDay] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
 
@@ -31,10 +32,6 @@ export default function ProgramPage() {
     equipment: "gym",
   });
 
-  /* ======================
-     HELPERS
-     ====================== */
-
   const updateForm = (key: keyof typeof form, value: any) => {
     setForm((prev) => ({ ...prev, [key]: value }));
     setHighlightPreview(true);
@@ -42,43 +39,45 @@ export default function ProgramPage() {
 
   useEffect(() => {
     if (!highlightPreview) return;
-    const t = setTimeout(() => setHighlightPreview(false), 300);
-    return () => clearTimeout(t);
+    const timer = setTimeout(() => setHighlightPreview(false), 300);
+    return () => clearTimeout(timer);
   }, [highlightPreview]);
 
   const isDaysValid = form.daysPerWeek >= 3 && form.daysPerWeek <= 6;
 
   const getDaysDescription = () => {
     if (!isDaysValid) {
-      return "Моля избери между 3 и 6 тренировъчни дни седмично.";
+      return t("program.daysInvalid");
     }
 
     const goalText =
       form.goal === "bulk"
-        ? "покачване на мускулна маса"
+        ? t("program.goalSummaryBulk")
         : form.goal === "cut"
-        ? "изчистване"
-        : "поддържане на форма";
+        ? t("program.goalSummaryCut")
+        : t("program.goalSummaryMaintain");
 
     const levelText =
-      form.level === "beginner" ? "начинаещо" : "средно напреднало";
+      form.level === "beginner"
+        ? t("program.levelSummaryBeginner")
+        : t("program.levelSummaryIntermediate");
 
-    return `${form.daysPerWeek} тренировъчни дни седмично са отличен избор за ${goalText} при ${levelText} ниво.`;
+    return formatMessage(t("program.daysSummary"), {
+      days: form.daysPerWeek,
+      goal: goalText,
+      level: levelText,
+    });
   };
 
   const getWhySplitText = () => {
     if (form.daysPerWeek <= 3) {
-      return "По-ниската честота позволява пълно възстановяване и стабилна основа.";
+      return t("program.whySplitLow");
     }
     if (form.daysPerWeek <= 5) {
-      return "Оптимален баланс между тренировъчен обем, прогрес и възстановяване.";
+      return t("program.whySplitMedium");
     }
-    return "По-висока честота с леко намален обем за по-добро възстановяване.";
+    return t("program.whySplitHigh");
   };
-
-  /* ======================
-     LOAD ACTIVE PROGRAM
-     ====================== */
 
   const loadProgram = async () => {
     try {
@@ -101,7 +100,6 @@ export default function ProgramPage() {
     }
   };
 
-  // ✅ взима log за избраната дата
   const loadWorkoutForDate = async (date: string) => {
     try {
       const res = await fetch(`/api/workout-log?date=${encodeURIComponent(date)}`);
@@ -117,7 +115,6 @@ export default function ProgramPage() {
     }
   };
 
-  // ✅ взима списък с дати за последните 7 дни
   const loadWorkoutDates = async () => {
     try {
       const res = await fetch("/api/workout-log?days=7");
@@ -137,18 +134,11 @@ export default function ProgramPage() {
     loadProgram();
     loadWorkoutDates();
     loadWorkoutForDate(selectedDate);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // когато смениш дата -> reload log
   useEffect(() => {
     loadWorkoutForDate(selectedDate);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedDate]);
-
-  /* ======================
-     GENERATE PROGRAM
-     ====================== */
 
   const generate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -164,13 +154,13 @@ export default function ProgramPage() {
       });
 
       if (!res.ok) {
-        alert("Грешка при генериране.");
+        alert(t("program.alertGenerateFailed"));
         return;
       }
 
       const data = await res.json();
       if (!data?.plan) {
-        alert("Невалидна програма.");
+        alert(t("program.alertNoPlan"));
         return;
       }
 
@@ -179,17 +169,12 @@ export default function ProgramPage() {
       await loadWorkoutForDate(selectedDate);
     } catch (err) {
       console.error("Generate error:", err);
-      alert("Възникна грешка.");
+      alert(t("program.alertGeneric"));
     } finally {
       setLoading(false);
     }
   };
 
-  /* ======================
-     WORKOUT LOG ACTIONS
-     ====================== */
-
-  // Mark / Switch (POST) — за избраната дата
   const saveWorkout = async (day: any) => {
     setSaveError(null);
     setSavingDay(day.day);
@@ -203,7 +188,7 @@ export default function ProgramPage() {
           focus: day.focus,
           minutes: 60,
           caloriesOut: 300,
-          date: selectedDate, // ✅ ключово
+          date: selectedDate,
         }),
       });
 
@@ -226,7 +211,6 @@ export default function ProgramPage() {
     }
   };
 
-  // Unmark (DELETE) — за избраната дата
   const unmarkSelectedDate = async () => {
     setSaveError(null);
     setSavingDay("UNMARK");
@@ -256,22 +240,13 @@ export default function ProgramPage() {
     }
   };
 
-  /* ======================
-     UI
-     ====================== */
-
   const isSelectedDateMarked = workoutDates.includes(selectedDate);
 
   return (
     <div className="max-w-5xl space-y-14">
       <header className="space-y-3">
-        <h1 className="text-3xl font-semibold tracking-tight">
-          Моята тренировъчна програма
-        </h1>
-        <p className="text-muted max-w-2xl">
-          Конфигурирай персонална програма според целите, възможностите и средата
-          си.
-        </p>
+        <h1 className="text-3xl font-semibold tracking-tight">{t("program.title")}</h1>
+        <p className="text-muted max-w-2xl">{t("program.subtitle")}</p>
       </header>
 
       {!program && (
@@ -280,30 +255,30 @@ export default function ProgramPage() {
           className="card space-y-14 border-border/60 shadow-md"
         >
           <section className="space-y-6">
-            <h2 className="text-lg font-medium">Основни настройки</h2>
+            <h2 className="text-lg font-medium">{t("program.goalTitle")}</h2>
 
             <div className="grid md:grid-cols-2 gap-6">
               <select
                 value={form.goal}
                 onChange={(e) => updateForm("goal", e.target.value)}
               >
-                <option value="cut">Изчистване</option>
-                <option value="bulk">Покачване на мускулна маса</option>
-                <option value="maintain">Поддържане</option>
+                <option value="cut">{t("program.goalCut")}</option>
+                <option value="bulk">{t("program.goalBulk")}</option>
+                <option value="maintain">{t("program.goalMaintain")}</option>
               </select>
 
               <select
                 value={form.level}
                 onChange={(e) => updateForm("level", e.target.value)}
               >
-                <option value="beginner">Начинаещ</option>
-                <option value="intermediate">Средно напреднал</option>
+                <option value="beginner">{t("program.levelBeginner")}</option>
+                <option value="intermediate">{t("program.levelIntermediate")}</option>
               </select>
             </div>
           </section>
 
           <section className="space-y-6">
-            <h2 className="text-lg font-medium">Тренировъчна честота</h2>
+            <h2 className="text-lg font-medium">{t("program.daysTitle")}</h2>
 
             <input
               type="number"
@@ -320,20 +295,20 @@ export default function ProgramPage() {
             </p>
 
             <div className="rounded-lg bg-muted/40 p-4 border">
-              <p className="font-medium mb-1">Защо този сплит?</p>
+              <p className="font-medium mb-1">{t("program.whySplitTitle")}</p>
               <p className="text-sm text-muted">{getWhySplitText()}</p>
             </div>
           </section>
 
           <section className="space-y-6">
-            <h2 className="text-lg font-medium">Среда</h2>
+            <h2 className="text-lg font-medium">{t("program.equipmentTitle")}</h2>
 
             <select
               value={form.equipment}
               onChange={(e) => updateForm("equipment", e.target.value)}
             >
-              <option value="gym">Фитнес зала</option>
-              <option value="home">Вкъщи</option>
+              <option value="gym">{t("program.equipmentGym")}</option>
+              <option value="home">{t("program.equipmentHome")}</option>
             </select>
           </section>
 
@@ -342,7 +317,7 @@ export default function ProgramPage() {
             disabled={!isDaysValid || loading}
             className="btn-primary px-12 py-3"
           >
-            {loading ? "Генериране..." : "Генерирай програмата"}
+            {loading ? t("program.submitting") : t("program.submit")}
           </button>
         </form>
       )}
@@ -350,22 +325,25 @@ export default function ProgramPage() {
       {program && (
         <section className="space-y-6 animate-fade-in">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold">Активна програма</h2>
+            <h2 className="text-xl font-semibold">{t("program.activeTitle")}</h2>
             <button
               type="button"
               className="btn-secondary"
               onClick={() => setProgram(null)}
             >
-              Нова програма
+              {t("program.regenerate")}
             </button>
           </div>
 
-          {/* ✅ избираш дата за маркиране */}
           <div className="card flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div className="space-y-1">
-              <p className="font-medium">Маркирай тренировка за дата</p>
+              <p className="font-medium">{t("program.dateCardTitle")}</p>
               <p className="text-sm text-muted">
-                Последни 7 дни: {isSelectedDateMarked ? "✔ има тренировка" : "няма тренировка"}
+                {formatMessage(t("program.dateCardLast7Days"), {
+                  status: isSelectedDateMarked
+                    ? t("program.dateCardMarked")
+                    : t("program.dateCardUnmarked"),
+                })}
               </p>
             </div>
 
@@ -383,7 +361,9 @@ export default function ProgramPage() {
                   className="btn-secondary"
                   onClick={() => void unmarkSelectedDate()}
                 >
-                  {savingDay === "UNMARK" ? "Махане..." : "Махни отметката"}
+                  {savingDay === "UNMARK"
+                    ? t("program.unmarking")
+                    : t("program.unmark")}
                 </button>
               )}
             </div>
@@ -396,8 +376,8 @@ export default function ProgramPage() {
           )}
 
           {program.plan.map((day: any, idx: number) => {
-            // ✅ за избраната дата
-            const isThisDayCompletedForSelectedDate = dayLog?.day === day.day && isSelectedDateMarked;
+            const isThisDayCompletedForSelectedDate =
+              dayLog?.day === day.day && isSelectedDateMarked;
 
             const hasAnyForSelectedDate = Boolean(dayLog) && isSelectedDateMarked;
             const canSwitch = hasAnyForSelectedDate && !isThisDayCompletedForSelectedDate;
@@ -408,23 +388,28 @@ export default function ProgramPage() {
             return (
               <div key={idx} className="card space-y-3">
                 <h3 className="font-semibold">
-                  {day.day} — {day.focus}
+                  {day.day} • {day.focus}
                 </h3>
 
                 <ul className="text-sm text-muted space-y-1">
                   {day.exercises.map((ex: any, i: number) => (
                     <li key={i}>
-                      {ex.name} — {ex.sets} серии × {ex.reps} повторения
+                      {formatMessage(t("program.exerciseItem"), {
+                        name: ex.name,
+                        sets: ex.sets,
+                        reps: ex.reps,
+                      })}
                     </li>
                   ))}
                 </ul>
 
-                {/* ✅ ACTIONS */}
                 <div className="flex items-center gap-3">
                   {isThisDayCompletedForSelectedDate ? (
                     <>
                       <span className="text-green-700 text-sm font-medium">
-                        ✔ Записано за {selectedDate}
+                        {formatMessage(t("program.completedOn"), {
+                          date: selectedDate,
+                        })}
                       </span>
 
                       <button
@@ -433,7 +418,7 @@ export default function ProgramPage() {
                         className="btn-secondary"
                         onClick={() => void unmarkSelectedDate()}
                       >
-                        {isUnmarking ? "Махане..." : "Махни отметката"}
+                        {isUnmarking ? t("program.unmarking") : t("program.unmark")}
                       </button>
                     </>
                   ) : canSwitch ? (
@@ -443,7 +428,7 @@ export default function ProgramPage() {
                       className="btn-secondary"
                       onClick={() => void saveWorkout(day)}
                     >
-                      {isSavingThis ? "Записване..." : "Смени на този ден"}
+                      {isSavingThis ? t("common.saving") : t("program.switchToDay")}
                     </button>
                   ) : (
                     <button
@@ -452,7 +437,7 @@ export default function ProgramPage() {
                       className="btn-primary"
                       onClick={() => void saveWorkout(day)}
                     >
-                      {isSavingThis ? "Записване..." : "Маркирай като завършена"}
+                      {isSavingThis ? t("common.saving") : t("program.markWorkout")}
                     </button>
                   )}
                 </div>

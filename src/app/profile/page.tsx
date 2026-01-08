@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useI18n } from "@/lib/i18n/LanguageProvider";
 
 type ProfileData = {
   name?: string | null;
@@ -9,13 +10,8 @@ type ProfileData = {
   sex?: "male" | "female" | null;
 };
 
-function fmtSex(sex: ProfileData["sex"]) {
-  if (sex === "male") return "Male";
-  if (sex === "female") return "Female";
-  return "Not set";
-}
-
 export default function ProfilePage() {
+  const { t } = useI18n();
   const [data, setData] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -25,9 +21,13 @@ export default function ProfilePage() {
 
   const [heightCm, setHeightCm] = useState<string>("");
   const [sex, setSex] = useState<string>("");
-
-  // ✅ locked by default once filled, but can be unlocked via Edit button
   const [editing, setEditing] = useState(false);
+
+  const fmtSex = (value: ProfileData["sex"]) => {
+    if (value === "male") return t("profile.sexMale");
+    if (value === "female") return t("profile.sexFemale");
+    return t("profile.sexNotSet");
+  };
 
   const isProfileComplete = useMemo(() => {
     return Boolean(data?.heightCm) && Boolean(data?.sex);
@@ -43,7 +43,7 @@ export default function ProfilePage() {
       const json = await res.json();
 
       if (!res.ok) {
-        throw new Error(json?.error ?? "Failed to load profile");
+        throw new Error(json?.error ?? t("profile.loadFailed"));
       }
 
       const d = (json?.data ?? null) as ProfileData | null;
@@ -55,7 +55,6 @@ export default function ProfilePage() {
       setHeightCm(h === null || h === undefined ? "" : String(h));
       setSex(s === null || s === undefined ? "" : String(s));
 
-      // ако има данни – заключваме (освен ако user натисне Edit)
       setEditing(false);
     } catch (e: any) {
       setError(e?.message ?? String(e));
@@ -75,14 +74,13 @@ export default function ProfilePage() {
 
     const h = heightCm.trim() === "" ? null : Number(heightCm);
 
-    // ✅ 0+ (ако искаш >0, кажи)
     if (h !== null && (!Number.isFinite(h) || h < 0)) {
-      setError("Height must be 0 or more.");
+      setError(t("profile.invalidHeight"));
       return;
     }
 
     if (sex !== "" && sex !== "male" && sex !== "female") {
-      setError("Invalid sex value.");
+      setError(t("profile.invalidSex"));
       return;
     }
 
@@ -99,10 +97,10 @@ export default function ProfilePage() {
 
       const json = await res.json();
       if (!res.ok) {
-        throw new Error(json?.error ?? "Failed to save");
+        throw new Error(json?.error ?? t("profile.saveFailed"));
       }
 
-      setOk("Saved ✅");
+      setOk(t("profile.saved"));
       await load();
     } catch (e: any) {
       setError(e?.message ?? String(e));
@@ -111,16 +109,14 @@ export default function ProfilePage() {
     }
   }
 
-  if (loading) return <p className="text-muted">Зареждане...</p>;
-  if (!data) return <p className="text-muted">Няма профилни данни.</p>;
+  if (loading) return <p className="text-muted">{t("common.loading")}</p>;
+  if (!data) return <p className="text-muted">{t("profile.noData")}</p>;
 
   return (
     <div className="space-y-10 max-w-5xl">
       <header className="space-y-2">
-        <h1 className="text-3xl font-semibold tracking-tight">Profile</h1>
-        <p className="text-muted">
-          Управление на профилната информация и настройки
-        </p>
+        <h1 className="text-3xl font-semibold tracking-tight">{t("profile.title")}</h1>
+        <p className="text-muted">{t("profile.subtitle")}</p>
       </header>
 
       {(error || ok) && (
@@ -135,30 +131,29 @@ export default function ProfilePage() {
         </div>
       )}
 
-      {/* Overview */}
       <div className="grid md:grid-cols-3 gap-6">
         <div className="card space-y-2">
-          <p className="text-sm text-muted">Name</p>
-          <p className="text-xl font-semibold">{data.name ?? "Not set"}</p>
+          <p className="text-sm text-muted">{t("profile.name")}</p>
+          <p className="text-xl font-semibold">{data.name ?? t("common.notSet")}</p>
         </div>
 
         <div className="card space-y-2">
-          <p className="text-sm text-muted">Email</p>
-          <p className="text-xl font-semibold">{data.email ?? "Not set"}</p>
+          <p className="text-sm text-muted">{t("profile.email")}</p>
+          <p className="text-xl font-semibold">{data.email ?? t("common.notSet")}</p>
         </div>
 
         <div className="card space-y-2">
-          <p className="text-sm text-muted">Body</p>
+          <p className="text-sm text-muted">{t("profile.body")}</p>
           <p className="text-sm text-muted">
-            Height:{" "}
+            {t("profile.height")}:{" "}
             <span className="font-semibold text-foreground">
               {data.heightCm !== null && data.heightCm !== undefined
                 ? `${data.heightCm} cm`
-                : "Not set"}
+                : t("common.notSet")}
             </span>
           </p>
           <p className="text-sm text-muted">
-            Sex:{" "}
+            {t("profile.sex")}:{" "}
             <span className="font-semibold text-foreground">
               {fmtSex(data.sex)}
             </span>
@@ -166,15 +161,14 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* Body info */}
       <div className="card space-y-4 max-w-md">
         <div className="flex items-center justify-between gap-4">
           <div>
-            <h2 className="text-lg font-semibold">Body info</h2>
+            <h2 className="text-lg font-semibold">{t("profile.bodyInfoTitle")}</h2>
             <p className="text-sm text-muted">
               {isProfileComplete
-                ? "Данните са заключени. Натисни Edit ако трябва корекция."
-                : "Попълни данните си веднъж, за да изчисляваме BMI в Body Stats."}
+                ? t("profile.bodyInfoComplete")
+                : t("profile.bodyInfoIncomplete")}
             </p>
           </div>
 
@@ -184,49 +178,51 @@ export default function ProfilePage() {
               className="btn-secondary px-5 py-2"
               onClick={() => setEditing(true)}
             >
-              Edit
+              {t("profile.edit")}
             </button>
           )}
         </div>
 
-        {/* Read-only view when complete and not editing */}
         {isProfileComplete && !editing ? (
           <div className="space-y-2">
             <div className="flex items-center justify-between border border-border rounded-lg p-3">
-              <span className="text-sm text-muted">Height</span>
+              <span className="text-sm text-muted">{t("profile.height")}</span>
               <span className="font-semibold">
-                {data.heightCm ?? "—"} cm
+                {data.heightCm ?? t("common.noData")} cm
               </span>
             </div>
 
             <div className="flex items-center justify-between border border-border rounded-lg p-3">
-              <span className="text-sm text-muted">Sex</span>
+              <span className="text-sm text-muted">{t("profile.sex")}</span>
               <span className="font-semibold">{fmtSex(data.sex)}</span>
             </div>
           </div>
         ) : (
-          // Edit/Setup form
           <div className="space-y-3">
-            <label className="text-sm text-muted">Height (cm)</label>
+            <label className="text-sm text-muted">{t("profile.heightLabel")}</label>
             <input
               type="number"
               min={0}
               step="1"
-              placeholder="e.g. 175"
+              placeholder={t("profile.heightPlaceholder")}
               value={heightCm}
               onChange={(e) => setHeightCm(e.target.value)}
             />
 
-            <label className="text-sm text-muted">Sex</label>
+            <label className="text-sm text-muted">{t("profile.sexLabel")}</label>
             <select value={sex} onChange={(e) => setSex(e.target.value)}>
-              <option value="">Not set</option>
-              <option value="male">Male</option>
-              <option value="female">Female</option>
+              <option value="">{t("profile.sexNotSet")}</option>
+              <option value="male">{t("profile.sexMale")}</option>
+              <option value="female">{t("profile.sexFemale")}</option>
             </select>
 
             <div className="flex items-center gap-3 pt-2">
               <button className="btn-primary" onClick={save} disabled={saving}>
-                {saving ? "Saving..." : isProfileComplete ? "Save changes" : "Save"}
+                {saving
+                  ? t("profile.saving")
+                  : isProfileComplete
+                  ? t("profile.saveChanges")
+                  : t("profile.save")}
               </button>
 
               {isProfileComplete && editing && (
@@ -242,14 +238,12 @@ export default function ProfilePage() {
                     setOk(null);
                   }}
                 >
-                  Cancel
+                  {t("profile.cancel")}
                 </button>
               )}
             </div>
 
-            <p className="text-xs text-muted">
-              Височината трябва да е от 0 нагоре. Полът се пази в профила.
-            </p>
+            <p className="text-xs text-muted">{t("profile.formHint")}</p>
           </div>
         )}
       </div>

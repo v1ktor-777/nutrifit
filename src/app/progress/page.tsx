@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useI18n } from "@/lib/i18n/LanguageProvider";
 
 type BodyStat = {
   _id: string;
-  date: string; // YYYY-MM-DD
+  date: string;
   weight: number;
 };
 
@@ -19,14 +20,8 @@ function calcBmi(weightKg: number, heightCm: number) {
   return weightKg / (h * h);
 }
 
-function bmiLabel(bmi: number) {
-  if (bmi < 18.5) return "Underweight";
-  if (bmi < 25) return "Normal";
-  if (bmi < 30) return "Overweight";
-  return "Obesity";
-}
-
 export default function ProgressPage() {
+  const { t } = useI18n();
   const [items, setItems] = useState<BodyStat[]>([]);
   const [profile, setProfile] = useState<ProfileData | null>(null);
 
@@ -49,6 +44,13 @@ export default function ProgressPage() {
     if (!bmi || !Number.isFinite(bmi)) return null;
     return bmi;
   }, [latest, heightCm]);
+
+  const bmiLabel = (bmi: number) => {
+    if (bmi < 18.5) return t("progress.bmiUnderweight");
+    if (bmi < 25) return t("progress.bmiNormal");
+    if (bmi < 30) return t("progress.bmiOverweight");
+    return t("progress.bmiObesity");
+  };
 
   async function load() {
     setError(null);
@@ -93,9 +95,8 @@ export default function ProgressPage() {
 
     const w = Number(weight);
 
-    // ✅ от 0 нагоре (за тегло реално трябва да е > 0)
     if (!Number.isFinite(w) || w <= 0) {
-      setError("Моля въведи валидно тегло (над 0).");
+      setError(t("progress.invalidWeight"));
       return;
     }
 
@@ -122,14 +123,16 @@ export default function ProgressPage() {
   }
 
   if (loading) {
-    return <p className="text-muted">Зареждане...</p>;
+    return <p className="text-muted">{t("common.loading")}</p>;
   }
 
   return (
     <div className="space-y-10 max-w-5xl">
       <header className="space-y-2">
-        <h1 className="text-3xl font-semibold tracking-tight">Body Stats</h1>
-        <p className="text-muted">Тегло и BMI във времето</p>
+        <h1 className="text-3xl font-semibold tracking-tight">
+          {t("progress.title")}
+        </h1>
+        <p className="text-muted">{t("progress.subtitle")}</p>
       </header>
 
       {error && (
@@ -138,67 +141,66 @@ export default function ProgressPage() {
         </div>
       )}
 
-      {/* SUMMARY */}
       <div className="grid md:grid-cols-3 gap-6">
         <div className="card space-y-2">
-          <p className="text-sm text-muted">Последно тегло</p>
+          <p className="text-sm text-muted">{t("progress.latestWeight")}</p>
           <p className="text-2xl font-semibold">
-            {latest ? `${latest.weight} kg` : "—"}
+            {latest ? `${latest.weight} kg` : t("common.noData")}
           </p>
           <span className="inline-block text-xs px-2 py-1 rounded bg-muted">
-            {latest?.date ?? "Няма запис"}
+            {latest?.date ?? t("progress.noWeight")}
           </span>
         </div>
 
         <div className="card space-y-2">
-          <p className="text-sm text-muted">BMI</p>
+          <p className="text-sm text-muted">{t("progress.bmi")}</p>
           <p className="text-2xl font-semibold">
-            {latestBmi ? latestBmi.toFixed(1) : "—"}
+            {latestBmi ? latestBmi.toFixed(1) : t("common.noData")}
           </p>
           <p className="text-sm text-muted">
-            {latestBmi ? bmiLabel(latestBmi) : heightCm ? "Няма тегло" : "Задай височина в профила"}
+            {latestBmi
+              ? bmiLabel(latestBmi)
+              : heightCm
+              ? t("progress.noWeight")
+              : t("progress.heightMissing")}
           </p>
         </div>
 
         <div className="card space-y-2">
-          <p className="text-sm text-muted">Височина (от профил)</p>
+          <p className="text-sm text-muted">{t("progress.heightFromProfile")}</p>
           <p className="text-2xl font-semibold">
-            {heightCm ? `${heightCm} cm` : "—"}
+            {heightCm ? `${heightCm} cm` : t("common.noData")}
           </p>
           <span className="inline-block text-xs px-2 py-1 rounded bg-muted">
-            Profile
+            {t("progress.profile")}
           </span>
         </div>
       </div>
 
-      {/* FORM */}
       <div className="card space-y-4 max-w-md">
-        <h2 className="text-lg font-semibold">Добави днешно тегло</h2>
+        <h2 className="text-lg font-semibold">{t("progress.logTitle")}</h2>
 
         <input
           type="number"
           step="0.1"
           min={0}
-          placeholder="Weight (kg)"
+          placeholder={t("progress.weightPlaceholder")}
           value={weight}
           onChange={(e) => setWeight(e.target.value)}
         />
 
         <button className="btn-primary" onClick={submit} disabled={saving}>
-          {saving ? "Записване..." : "Запиши"}
+          {saving ? t("progress.saving") : t("progress.save")}
         </button>
 
-        <p className="text-xs text-muted">
-          Ако вече имаш запис за днес, той се обновява (upsert).
-        </p>
+        <p className="text-xs text-muted">{t("progress.hint")}</p>
       </div>
 
-      {/* LIST */}
       <div className="card space-y-4">
-        <h2 className="text-lg font-semibold">История</h2>
+        <h2 className="text-lg font-semibold">{t("progress.historyTitle")}</h2>
 
         {items.length === 0 ? (
-          <p className="text-sm text-muted">Няма записи.</p>
+          <p className="text-sm text-muted">{t("progress.historyEmpty")}</p>
         ) : (
           <div className="space-y-2">
             {items

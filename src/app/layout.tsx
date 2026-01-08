@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import Providers from "./providers";
 import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -27,11 +28,7 @@ export default function RootLayout({
           <div className="min-h-screen flex flex-col gap-6">
             <Navbar />
             <main className="flex-1 container py-8">{children}</main>
-            <footer className="border-t border-border py-6">
-              <div className="container text-sm text-muted-foreground">
-                © 2025 NutriFit. All rights reserved.
-              </div>
-            </footer>
+            <Footer />
           </div>
         </Providers>
       </body>

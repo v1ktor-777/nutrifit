@@ -144,13 +144,13 @@ export default function DashboardPage() {
         )}
       </div>
 
-      <div className="card flex items-center justify-between gap-4">
+      <div className="card flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <p className="font-medium">{t("dashboard.actionTitle")}</p>
           <p className="text-sm text-muted">{t("dashboard.actionDescription")}</p>
         </div>
 
-        <Link href="/program" className="btn-primary px-6 py-3">
+        <Link href="/program" className="btn-primary px-6 py-3 w-full sm:w-auto text-center">
           {t("dashboard.actionButton")}
         </Link>
       </div>

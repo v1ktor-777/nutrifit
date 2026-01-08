@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useI18n } from "@/lib/i18n/LanguageProvider";
+import { logError, toUserError } from "@/lib/uiError";
 
 type ProfileData = {
   name?: string | null;
@@ -40,10 +41,14 @@ export default function ProfilePage() {
 
     try {
       const res = await fetch("/api/profile");
-      const json = await res.json();
+      const json = await res.json().catch((err) => {
+        logError("profile.load.parse", err);
+        return null;
+      });
 
       if (!res.ok) {
-        throw new Error(json?.error ?? t("profile.loadFailed"));
+        logError("profile.load", { status: res.status, body: json });
+        throw { status: res.status };
       }
 
       const d = (json?.data ?? null) as ProfileData | null;
@@ -56,8 +61,9 @@ export default function ProfilePage() {
       setSex(s === null || s === undefined ? "" : String(s));
 
       setEditing(false);
-    } catch (e: any) {
-      setError(e?.message ?? String(e));
+    } catch (e: unknown) {
+      logError("profile.load", e);
+      setError(toUserError(e, t));
       setData(null);
     } finally {
       setLoading(false);
@@ -95,15 +101,20 @@ export default function ProfilePage() {
         }),
       });
 
-      const json = await res.json();
+      const json = await res.json().catch((err) => {
+        logError("profile.save.parse", err);
+        return null;
+      });
       if (!res.ok) {
-        throw new Error(json?.error ?? t("profile.saveFailed"));
+        logError("profile.save", { status: res.status, body: json });
+        throw { status: res.status };
       }
 
       setOk(t("profile.saved"));
       await load();
-    } catch (e: any) {
-      setError(e?.message ?? String(e));
+    } catch (e: unknown) {
+      logError("profile.save", e);
+      setError(toUserError(e, t));
     } finally {
       setSaving(false);
     }
@@ -162,7 +173,7 @@ export default function ProfilePage() {
       </div>
 
       <div className="card space-y-4 max-w-md">
-        <div className="flex items-center justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h2 className="text-lg font-semibold">{t("profile.bodyInfoTitle")}</h2>
             <p className="text-sm text-muted">
@@ -175,7 +186,7 @@ export default function ProfilePage() {
           {isProfileComplete && !editing && (
             <button
               type="button"
-              className="btn-secondary px-5 py-2"
+              className="btn-secondary px-5 py-2 w-full sm:w-auto"
               onClick={() => setEditing(true)}
             >
               {t("profile.edit")}
@@ -216,8 +227,8 @@ export default function ProfilePage() {
               <option value="female">{t("profile.sexFemale")}</option>
             </select>
 
-            <div className="flex items-center gap-3 pt-2">
-              <button className="btn-primary" onClick={save} disabled={saving}>
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3 pt-2">
+              <button className="btn-primary w-full sm:w-auto" onClick={save} disabled={saving}>
                 {saving
                   ? t("profile.saving")
                   : isProfileComplete
@@ -228,7 +239,7 @@ export default function ProfilePage() {
               {isProfileComplete && editing && (
                 <button
                   type="button"
-                  className="btn-secondary"
+                  className="btn-secondary w-full sm:w-auto"
                   disabled={saving}
                   onClick={() => {
                     setEditing(false);

@@ -113,6 +113,13 @@ export default function Navbar() {
               {languageToggleLabel}
             </button>
 
+            <Link
+              href="/help"
+              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors px-3 py-1.5 border border-border rounded-md hover:border-foreground/30"
+            >
+              {t("help.nav")}
+            </Link>
+
             {session && (
               <button
                 onClick={() => signOut({ callbackUrl: "/login" })}
@@ -124,12 +131,12 @@ export default function Navbar() {
           </div>
 
           {/* Mobile menu button */}
-          <div className="flex md:hidden items-center gap-4">
+          <div className="flex md:hidden items-center gap-2">
             {/* Theme Toggle for mobile (outside menu) */}
             <button
               onClick={toggleTheme}
               disabled={!themeMounted}
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors px-3 py-1.5 border border-border rounded-md hover:border-foreground/30 disabled:opacity-60 disabled:cursor-not-allowed"
+              className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors px-2 py-1 border border-border rounded-md hover:border-foreground/30 disabled:opacity-60 disabled:cursor-not-allowed"
               aria-label={
                 themeMounted
                   ? isDark
@@ -148,11 +155,18 @@ export default function Navbar() {
             <button
               onClick={toggleLanguage}
               disabled={!i18nMounted}
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors px-3 py-1.5 border border-border rounded-md hover:border-foreground/30 disabled:opacity-60 disabled:cursor-not-allowed"
+              className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors px-2 py-1 border border-border rounded-md hover:border-foreground/30 disabled:opacity-60 disabled:cursor-not-allowed"
               aria-label={t("nav.languageLabel")}
             >
               {languageToggleLabel}
             </button>
+
+            <Link
+              href="/help"
+              className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors px-2 py-1 border border-border rounded-md hover:border-foreground/30"
+            >
+              {t("help.nav")}
+            </Link>
 
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -168,6 +182,13 @@ export default function Navbar() {
         {mobileMenuOpen && (
           <div className="md:hidden border-t border-border">
             <div className="py-4 flex flex-col gap-3">
+              <Link
+                href="/help"
+                className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
+                onClick={closeMobileMenu}
+              >
+                {t("help.nav")}
+              </Link>
               {navLinks.map((link) => (
                 <Link
                   key={link.href}

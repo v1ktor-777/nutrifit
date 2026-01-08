@@ -169,6 +169,13 @@ export default function Home() {
                   {t("home.ctaSignIn")}
                 </Link>
               </div>
+
+              <Link
+                href="/help"
+                className="text-sm text-muted-foreground hover:text-foreground underline underline-offset-4"
+              >
+                {t("help.link")}
+              </Link>
             </div>
           </section>
         </>

@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useI18n } from "@/lib/i18n/LanguageProvider";
+import { logError, toUserError } from "@/lib/uiError";
 
 type BodyStat = {
   _id: string;
@@ -64,12 +65,20 @@ export default function ProgressPage() {
 
       if (!statsRes.ok) {
         const txt = await statsRes.text().catch(() => "");
-        throw new Error(`GET /api/body-stats -> ${statsRes.status} ${txt}`);
+        logError("progress.load.stats", { status: statsRes.status, body: txt });
+        setError(toUserError({ status: statsRes.status }, t));
+        setItems([]);
+        setProfile(null);
+        return;
       }
 
       if (!profileRes.ok) {
         const txt = await profileRes.text().catch(() => "");
-        throw new Error(`GET /api/profile -> ${profileRes.status} ${txt}`);
+        logError("progress.load.profile", { status: profileRes.status, body: txt });
+        setError(toUserError({ status: profileRes.status }, t));
+        setItems([]);
+        setProfile(null);
+        return;
       }
 
       const statsJson = await statsRes.json();
@@ -77,8 +86,9 @@ export default function ProgressPage() {
 
       setItems(statsJson?.data ?? []);
       setProfile(profileJson?.data ?? null);
-    } catch (e: any) {
-      setError(e?.message ?? String(e));
+    } catch (e: unknown) {
+      logError("progress.load", e);
+      setError(toUserError(e, t));
       setItems([]);
       setProfile(null);
     } finally {
@@ -110,13 +120,16 @@ export default function ProgressPage() {
 
       if (!res.ok) {
         const txt = await res.text().catch(() => "");
-        throw new Error(`POST /api/body-stats -> ${res.status} ${txt}`);
+        logError("progress.submit", { status: res.status, body: txt });
+        setError(toUserError({ status: res.status }, t));
+        return;
       }
 
       setWeight("");
       await load();
-    } catch (e: any) {
-      setError(e?.message ?? String(e));
+    } catch (e: unknown) {
+      logError("progress.submit", e);
+      setError(toUserError(e, t));
     } finally {
       setSaving(false);
     }
@@ -189,7 +202,7 @@ export default function ProgressPage() {
           onChange={(e) => setWeight(e.target.value)}
         />
 
-        <button className="btn-primary" onClick={submit} disabled={saving}>
+        <button className="btn-primary w-full sm:w-auto" onClick={submit} disabled={saving}>
           {saving ? t("progress.saving") : t("progress.save")}
         </button>
 
@@ -209,13 +222,13 @@ export default function ProgressPage() {
               .map((x) => (
                 <div
                   key={x._id}
-                  className="flex items-center justify-between border-b border-border/60 py-2"
+                  className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-border/60 py-2"
                 >
                   <div className="text-sm">
                     <span className="font-medium">{x.date}</span>
                   </div>
 
-                  <div className="text-sm text-muted flex items-center gap-3">
+                  <div className="text-sm text-muted flex flex-wrap items-center gap-3">
                     <span>{x.weight} kg</span>
                     {heightCm ? (
                       <span className="text-xs px-2 py-1 rounded bg-muted">

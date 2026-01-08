@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useI18n } from "@/lib/i18n/LanguageProvider";
+import { logError, toUserError } from "@/lib/uiError";
 
 type FoodItem = {
   _id: string;
@@ -49,11 +50,19 @@ export default function FoodPage() {
     setError(null);
     try {
       const res = await fetch("/api/food");
-      const json = await res.json();
-      if (!res.ok) throw new Error(json?.error ?? t("food.loadFailed"));
+      const json = await res.json().catch((err) => {
+        logError("food.load.parse", err);
+        return null;
+      });
+      if (!res.ok) {
+        logError("food.load", { status: res.status, body: json });
+        setError(toUserError({ status: res.status }, t));
+        return;
+      }
       setItems(json?.items ?? []);
-    } catch (e: any) {
-      setError(e?.message ?? t("food.loadFailed"));
+    } catch (e: unknown) {
+      logError("food.load", e);
+      setError(toUserError(e, t));
     } finally {
       setLoading(false);
     }
@@ -84,8 +93,15 @@ export default function FoodPage() {
         }),
       });
 
-      const json = await res.json();
-      if (!res.ok) throw new Error(json?.error ?? t("food.saveFailed"));
+      const json = await res.json().catch((err) => {
+        logError("food.submit.parse", err);
+        return null;
+      });
+      if (!res.ok) {
+        logError("food.submit", { status: res.status, body: json });
+        setError(toUserError({ status: res.status }, t));
+        return;
+      }
 
       setCalories("");
       setProtein("");
@@ -94,8 +110,9 @@ export default function FoodPage() {
 
       setOkMsg(t("food.saved"));
       await load();
-    } catch (e: any) {
-      setError(e?.message ?? t("food.saveFailed"));
+    } catch (e: unknown) {
+      logError("food.submit", e);
+      setError(toUserError(e, t));
     } finally {
       setSaving(false);
     }
@@ -141,14 +158,22 @@ export default function FoodPage() {
         }),
       });
 
-      const json = await res.json();
-      if (!res.ok) throw new Error(json?.error ?? t("food.editFailed"));
+      const json = await res.json().catch((err) => {
+        logError("food.saveEdit.parse", err);
+        return null;
+      });
+      if (!res.ok) {
+        logError("food.saveEdit", { status: res.status, body: json });
+        setError(toUserError({ status: res.status }, t));
+        return;
+      }
 
       setOkMsg(t("food.updated"));
       cancelEdit();
       await load();
-    } catch (e: any) {
-      setError(e?.message ?? t("food.editFailed"));
+    } catch (e: unknown) {
+      logError("food.saveEdit", e);
+      setError(toUserError(e, t));
     } finally {
       setSaving(false);
     }
@@ -163,13 +188,21 @@ export default function FoodPage() {
     setSaving(true);
     try {
       const res = await fetch(`/api/food/${id}`, { method: "DELETE" });
-      const json = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(json?.error ?? t("food.deleteFailed"));
+      const json = await res.json().catch((err) => {
+        logError("food.delete.parse", err);
+        return null;
+      });
+      if (!res.ok) {
+        logError("food.delete", { status: res.status, body: json });
+        setError(toUserError({ status: res.status }, t));
+        return;
+      }
 
       setOkMsg(t("food.deleted"));
       await load();
-    } catch (e: any) {
-      setError(e?.message ?? t("food.deleteFailed"));
+    } catch (e: unknown) {
+      logError("food.delete", e);
+      setError(toUserError(e, t));
     } finally {
       setSaving(false);
     }
@@ -207,7 +240,11 @@ export default function FoodPage() {
           />
         </div>
 
-        <button className="btn-primary w-fit" onClick={submit} disabled={saving || !canSubmit}>
+        <button
+          className="btn-primary w-full sm:w-fit"
+          onClick={submit}
+          disabled={saving || !canSubmit}
+        >
           {saving ? t("food.saving") : t("food.addEntry")}
         </button>
 
@@ -229,7 +266,7 @@ export default function FoodPage() {
 
               return (
                 <div key={it._id} className="border-b border-border pb-4">
-                  <div className="flex items-start justify-between gap-4">
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
                     <div className="space-y-1">
                       <p className="text-sm text-muted">
                         {fmtDate(it.date ?? it.createdAt, lang)}
@@ -296,18 +333,18 @@ export default function FoodPage() {
                       )}
                     </div>
 
-                    <div className="flex flex-col items-end gap-2 min-w-30">
+                    <div className="flex flex-col items-stretch sm:items-end gap-2 min-w-30">
                       {!isEditing ? (
                         <>
                           <button
-                            className="btn-secondary"
+                            className="btn-secondary w-full sm:w-auto"
                             onClick={() => startEdit(it)}
                             disabled={saving}
                           >
                             {t("common.edit")}
                           </button>
                           <button
-                            className="btn-secondary"
+                            className="btn-secondary w-full sm:w-auto"
                             onClick={() => deleteItem(it._id)}
                             disabled={saving}
                           >
@@ -317,14 +354,14 @@ export default function FoodPage() {
                       ) : (
                         <>
                           <button
-                            className="btn-primary"
+                            className="btn-primary w-full sm:w-auto"
                             onClick={() => saveEdit(it._id)}
                             disabled={saving}
                           >
                             {t("common.save")}
                           </button>
                           <button
-                            className="btn-secondary"
+                            className="btn-secondary w-full sm:w-auto"
                             onClick={cancelEdit}
                             disabled={saving}
                           >

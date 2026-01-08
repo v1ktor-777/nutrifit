@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useI18n } from "@/lib/i18n/LanguageProvider";
+import { logError, toUserError } from "@/lib/uiError";
 
 function todayISO() {
   return new Date().toISOString().slice(0, 10);
@@ -83,6 +84,7 @@ export default function ProgramPage() {
     try {
       const res = await fetch("/api/program");
       if (!res.ok) {
+        logError("program.loadProgram", { status: res.status });
         setProgram(null);
         return;
       }
@@ -95,7 +97,7 @@ export default function ProgramPage() {
 
       setProgram(data);
     } catch (err) {
-      console.error("Load program error:", err);
+      logError("program.loadProgram", err);
       setProgram(null);
     }
   };
@@ -104,13 +106,14 @@ export default function ProgramPage() {
     try {
       const res = await fetch(`/api/workout-log?date=${encodeURIComponent(date)}`);
       if (!res.ok) {
+        logError("program.loadWorkoutForDate", { status: res.status, date });
         setDayLog(null);
         return;
       }
       const json = await res.json();
       setDayLog(json?.data ?? null);
     } catch (err) {
-      console.error("Load workout for date error:", err);
+      logError("program.loadWorkoutForDate", err);
       setDayLog(null);
     }
   };
@@ -119,13 +122,14 @@ export default function ProgramPage() {
     try {
       const res = await fetch("/api/workout-log?days=7");
       if (!res.ok) {
+        logError("program.loadWorkoutDates", { status: res.status });
         setWorkoutDates([]);
         return;
       }
       const json = await res.json();
       setWorkoutDates(Array.isArray(json?.dates) ? json.dates : []);
     } catch (err) {
-      console.error("Load workout dates error:", err);
+      logError("program.loadWorkoutDates", err);
       setWorkoutDates([]);
     }
   };
@@ -168,7 +172,7 @@ export default function ProgramPage() {
       await loadWorkoutDates();
       await loadWorkoutForDate(selectedDate);
     } catch (err) {
-      console.error("Generate error:", err);
+      logError("program.generate", err);
       alert(t("program.alertGeneric"));
     } finally {
       setLoading(false);
@@ -198,14 +202,16 @@ export default function ProgramPage() {
       } catch {}
 
       if (!res.ok) {
-        setSaveError(`POST /api/workout-log -> ${res.status} ${text}`);
+        logError("program.saveWorkout", { status: res.status, body: text });
+        setSaveError(toUserError({ status: res.status }, t));
         return;
       }
 
       await loadWorkoutForDate(selectedDate);
       await loadWorkoutDates();
-    } catch (err: any) {
-      setSaveError(`Fetch error: ${err?.message ?? String(err)}`);
+    } catch (err: unknown) {
+      logError("program.saveWorkout", err);
+      setSaveError(toUserError(err, t));
     } finally {
       setSavingDay(null);
     }
@@ -227,14 +233,16 @@ export default function ProgramPage() {
       } catch {}
 
       if (!res.ok) {
-        setSaveError(`DELETE /api/workout-log -> ${res.status} ${text}`);
+        logError("program.unmarkSelectedDate", { status: res.status, body: text });
+        setSaveError(toUserError({ status: res.status }, t));
         return;
       }
 
       await loadWorkoutForDate(selectedDate);
       await loadWorkoutDates();
-    } catch (err: any) {
-      setSaveError(`Fetch error: ${err?.message ?? String(err)}`);
+    } catch (err: unknown) {
+      logError("program.unmarkSelectedDate", err);
+      setSaveError(toUserError(err, t));
     } finally {
       setSavingDay(null);
     }
@@ -315,7 +323,7 @@ export default function ProgramPage() {
           <button
             type="submit"
             disabled={!isDaysValid || loading}
-            className="btn-primary px-12 py-3"
+            className="btn-primary px-12 py-3 w-full sm:w-auto"
           >
             {loading ? t("program.submitting") : t("program.submit")}
           </button>
@@ -324,11 +332,11 @@ export default function ProgramPage() {
 
       {program && (
         <section className="space-y-6 animate-fade-in">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <h2 className="text-xl font-semibold">{t("program.activeTitle")}</h2>
             <button
               type="button"
-              className="btn-secondary"
+              className="btn-secondary w-full sm:w-auto"
               onClick={() => setProgram(null)}
             >
               {t("program.regenerate")}
@@ -347,10 +355,11 @@ export default function ProgramPage() {
               </p>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3 w-full sm:w-auto">
               <input
                 type="date"
                 value={selectedDate}
+                className="w-full sm:w-auto"
                 onChange={(e) => setSelectedDate(e.target.value)}
               />
 
@@ -358,7 +367,7 @@ export default function ProgramPage() {
                 <button
                   type="button"
                   disabled={Boolean(savingDay)}
-                  className="btn-secondary"
+                  className="btn-secondary w-full sm:w-auto"
                   onClick={() => void unmarkSelectedDate()}
                 >
                   {savingDay === "UNMARK"
@@ -403,7 +412,7 @@ export default function ProgramPage() {
                   ))}
                 </ul>
 
-                <div className="flex items-center gap-3">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3">
                   {isThisDayCompletedForSelectedDate ? (
                     <>
                       <span className="text-green-700 text-sm font-medium">
@@ -415,7 +424,7 @@ export default function ProgramPage() {
                       <button
                         type="button"
                         disabled={Boolean(savingDay)}
-                        className="btn-secondary"
+                        className="btn-secondary w-full sm:w-auto"
                         onClick={() => void unmarkSelectedDate()}
                       >
                         {isUnmarking ? t("program.unmarking") : t("program.unmark")}
@@ -425,7 +434,7 @@ export default function ProgramPage() {
                     <button
                       type="button"
                       disabled={Boolean(savingDay)}
-                      className="btn-secondary"
+                      className="btn-secondary w-full sm:w-auto"
                       onClick={() => void saveWorkout(day)}
                     >
                       {isSavingThis ? t("common.saving") : t("program.switchToDay")}
@@ -434,7 +443,7 @@ export default function ProgramPage() {
                     <button
                       type="button"
                       disabled={Boolean(savingDay)}
-                      className="btn-primary"
+                      className="btn-primary w-full sm:w-auto"
                       onClick={() => void saveWorkout(day)}
                     >
                       {isSavingThis ? t("common.saving") : t("program.markWorkout")}

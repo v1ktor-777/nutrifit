@@ -1,74 +1,97 @@
 @import "tailwindcss";
 
+/* ============================================================================
+   Premium SaaS Design System - NutriFit
+   Inspired by Linear, Stripe, Vercel
+   ============================================================================ */
+
 /* =========================
-   Design tokens - Light theme
+   Design tokens - Light theme (Enhanced)
    ========================= */
 :root {
-  /* Base colors */
+  /* Base colors - Premium white/black */
   --background: #ffffff;
-  --foreground: #0a0a0a;
+  --foreground: #0f172a;
   
-  /* Surface colors */
-  --surface: #ffffff;
+  /* Surface colors - Subtle layering */
+  --surface: #f8fafc;
   --card: #ffffff;
-  --card-foreground: #0a0a0a;
+  --card-foreground: #0f172a;
   
-  /* UI colors */
-  --primary: #0a0a0a;
+  /* UI colors - Vibrant but professional */
+  --primary: #3b82f6;
   --primary-foreground: #ffffff;
-  --secondary: #f5f5f5;
-  --secondary-foreground: #262626;
-  --muted: #f5f5f5;
-  --muted-foreground: #737373;
+  --secondary: #f1f5f9;
+  --secondary-foreground: #334155;
+  --muted: #f8fafc;
+  --muted-foreground: #64748b;
 
-  /* Accent */
-  --accent: #2563eb;
+  /* Accent - Energetic blue (fitness vibe) */
+  --accent: #0ea5e9;
   --accent-foreground: #ffffff;
-  --accent-soft: rgba(37, 99, 235, 0.08);
+  --accent-soft: rgba(14, 165, 233, 0.08);
   
-  /* Borders */
-  --border: #e5e5e5;
+  /* Gradients */
+  --gradient-primary: linear-gradient(135deg, #3b82f6 0%, #0ea5e9 100%);
+  --gradient-subtle: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  
+  /* Borders - Clean and consistent */
+  --border: #e2e8f0;
   --input: #ffffff;
-  --ring: #0a0a0a;
+  --ring: #3b82f6;
   
-  /* Effects */
+  /* Effects - Premium feel */
   --radius: 0.75rem;
-  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.05);
-  --shadow: 0 2px 4px rgb(0 0 0 / 0.08);
-  --shadow-md: 0 6px 12px rgb(0 0 0 / 0.1);
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+  
+  /* Shadows - Clean, layered, modern */
+  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.05);
+  --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.08);
+  --shadow-md: 0 10px 15px -3px rgb(0 0 0 / 0.08);
+  --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.1);
   
   /* Typography */
   --font-sans: var(--font-inter);
+  
+  /* Animation */
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* =========================
-   Dark theme
+   Dark theme (Enhanced)
    ========================= */
 .dark {
-  --background: #0a0a0a;
-  --foreground: #fafafa;
+  --background: #0f172a;
+  --foreground: #f1f5f9;
   
-  --surface: #171717;
-  --card: #171717;
-  --card-foreground: #fafafa;
+  --surface: #1e293b;
+  --card: #1e293b;
+  --card-foreground: #f1f5f9;
   
-  --primary: #fafafa;
-  --primary-foreground: #171717;
-  --secondary: #262626;
-  --secondary-foreground: #f5f5f5;
-  --muted: #262626;
-  --muted-foreground: #a3a3a3;
+  --primary: #60a5fa;
+  --primary-foreground: #0f172a;
+  --secondary: #334155;
+  --secondary-foreground: #e2e8f0;
+  --muted: #1e293b;
+  --muted-foreground: #94a3b8;
   
-  --accent: #3b82f6;
-  --accent-foreground: #ffffff;
+  --accent: #38bdf8;
+  --accent-foreground: #0f172a;
+  --accent-soft: rgba(56, 189, 248, 0.1);
   
-  --border: #262626;
-  --input: #262626;
-  --ring: #d4d4d4;
+  --gradient-primary: linear-gradient(135deg, #60a5fa 0%, #38bdf8 100%);
+  --gradient-subtle: linear-gradient(135deg, #1e293b 0%, #334155 100%);
   
-  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.15);
-  --shadow: 0 2px 4px rgb(0 0 0 / 0.2);
-  --shadow-md: 0 6px 12px rgb(0 0 0 / 0.25);
+  --border: #334155;
+  --input: #1e293b;
+  --ring: #60a5fa;
+  
+  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.25);
+  --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.3);
+  --shadow-md: 0 10px 15px -3px rgb(0 0 0 / 0.3);
+  --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.35);
 }
 
 /* =========================
@@ -93,8 +116,8 @@
     --color-input: var(--input);
     --color-ring: var(--ring);
     
-    --radius-lg: var(--radius);
-    --radius-md: calc(var(--radius) - 0.125rem);
+    --radius-lg: var(--radius-lg);
+    --radius-md: var(--radius);
     --radius-sm: calc(var(--radius) - 0.25rem);
     
     --font-sans: var(--font-sans);
@@ -106,225 +129,553 @@
 }
 
 /* =========================
-   Base styles
+   Base styles - Premium feel
    ========================= */
 body {
   min-height: 100vh;
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
+  font-family: var(--font-sans), system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  transition: background-color 0.2s ease, color 0.2s ease;
+  font-feature-settings: 'ss01', 'ss02', 'cv01', 'cv02';
+  text-rendering: optimizeLegibility;
+  transition: background-color var(--transition-base), color var(--transition-base);
 }
 
 /* =========================
-   Theme Toggle Button Specific Styles
+   Typography System - Premium readability
    ========================= */
-.theme-toggle-btn {
+h1, h2, h3, h4 {
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+}
+
+h1 {
+  font-size: 2.25rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+
+h2 {
+  font-size: 1.75rem;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+}
+
+h3 {
+  font-size: 1.375rem;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+p {
+  line-height: 1.7;
+  margin-bottom: 1rem;
+}
+
+/* =========================
+   Premium Cards - Like Linear/Stripe
+   ========================= */
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  padding: 1.75rem;
+  transition: all var(--transition-base);
+  position: relative;
+  overflow: hidden;
+}
+
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--gradient-primary);
+  opacity: 0;
+  transition: opacity var(--transition-base);
+}
+
+.card:hover {
+  border-color: var(--primary);
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-2px);
+}
+
+.card:hover::before {
+  opacity: 1;
+}
+
+/* Card variants */
+.card-interactive {
+  cursor: pointer;
+}
+
+.card-elevated {
+  background: var(--gradient-subtle);
+  border: none;
+  box-shadow: var(--shadow-md);
+}
+
+.card-accent {
+  border-left: 4px solid var(--accent);
+  border-top-left-radius: var(--radius);
+  border-bottom-left-radius: var(--radius);
+}
+
+/* =========================
+   Premium Buttons - Like SaaS products
+   ========================= */
+.btn-primary {
+  background: var(--gradient-primary);
+  color: var(--primary-foreground);
+  border: none;
+  border-radius: var(--radius);
+  padding: 0.75rem 1.75rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  transition: all var(--transition-base);
+  position: relative;
+  overflow: hidden;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0.5rem 1rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--muted-foreground);
-  background: transparent;
-  border: 1px solid var(--border);
+  gap: 0.5rem;
+  min-height: 44px; /* Better tap target on mobile */
+}
+
+.btn-primary::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0));
+  opacity: 0;
+  transition: opacity var(--transition-base);
+}
+
+.btn-primary:hover {
+  box-shadow: 0 8px 20px -4px rgba(59, 130, 246, 0.25);
+  transform: translateY(-1px);
+}
+
+.btn-primary:hover::after {
+  opacity: 1;
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+  transition-duration: 100ms;
+}
+
+.btn-primary:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Secondary button - Clean and elegant */
+.btn-secondary {
+  background: var(--secondary);
+  color: var(--secondary-foreground);
+  border: 1.5px solid var(--border);
   border-radius: var(--radius);
-  cursor: pointer;
-  transition: all 0.15s ease;
-  user-select: none;
+  padding: 0.75rem 1.75rem;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  transition: all var(--transition-base);
+  min-height: 44px;
 }
 
-.theme-toggle-btn:hover {
-  color: var(--foreground);
-  border-color: var(--foreground);
-  background: var(--muted);
+.btn-secondary:hover {
+  background: color-mix(in srgb, var(--secondary) 90%, transparent);
+  border-color: var(--primary);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
 }
 
-.theme-toggle-btn:focus-visible {
-  outline: 2px solid var(--accent);
+.btn-secondary:focus-visible {
+  outline: 2px solid var(--ring);
   outline-offset: 2px;
 }
 
-/* =========================
-   Typography
-   ========================= */
-h1, h2, h3 {
-  font-weight: 600;
-  letter-spacing: -0.02em;
-}
-
-h1 { font-size: 2rem; }
-h2 { font-size: 1.5rem; }
-h3 { font-size: 1.25rem; }
-
-p {
-  line-height: 1.75;
+.btn-secondary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
 /* =========================
-   Links
-   ========================= */
-a {
-  color: inherit;
-  text-decoration: none;
-  transition: color 0.15s ease;
-}
-
-a:hover {
-  color: var(--accent);
-}
-
-/* =========================
-   Forms
+   Premium Form Elements
    ========================= */
 input,
 select,
 textarea {
   width: 100%;
-  padding: 0.6rem 0.8rem;
-  border: 1px solid var(--border);
+  padding: 0.75rem 1rem;
+  border: 1.5px solid var(--border);
   border-radius: var(--radius);
-  background: var(--card);
+  background: var(--input);
   color: var(--foreground);
-  font-size: 0.875rem;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  font-size: 0.9375rem;
+  font-family: inherit;
+  transition: all var(--transition-fast);
+  min-height: 48px; /* Better mobile UX */
 }
 
-input::placeholder {
+input::placeholder,
+select::placeholder,
+textarea::placeholder {
   color: var(--muted-foreground);
+  font-weight: 400;
+}
+
+input:hover,
+select:hover,
+textarea:hover {
+  border-color: var(--primary);
 }
 
 input:focus,
 select:focus,
 textarea:focus {
   outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent);
-}
-
-/* =========================
-   Buttons
-   ========================= */
-button {
-  padding: 0.6rem 1.2rem;
-  border-radius: var(--radius);
-  font-size: 0.875rem;
-  font-weight: 500;
-  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
-  cursor: pointer;
-  border: 1px solid transparent;
-}
-
-.btn-primary {
-  background: var(--primary);
-  color: var(--primary-foreground);
   border-color: var(--primary);
-}
-
-.btn-primary:hover {
-  background: color-mix(in srgb, var(--primary) 90%, transparent);
-}
-
-.btn-secondary {
-  background: var(--secondary);
-  color: var(--secondary-foreground);
-  border: 1px solid var(--border);
-}
-
-.btn-secondary:hover {
-  background: color-mix(in srgb, var(--secondary) 90%, transparent);
-}
-
-/* =========================
-   Layout helpers
-   ========================= */
-.container {
-  width: 100%;
-  max-width: 72rem;
-  margin: 0 auto;
-  padding: 0 1rem;
-}
-
-/* =========================
-   Cards
-   ========================= */.card {
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
   background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  padding: 1.5rem;
-  transition:
-    background-color 0.2s ease,
-    border-color 0.2s ease,
-    box-shadow 0.2s ease,
-    transform 0.15s ease;
 }
 
-.card:hover {
-  box-shadow: var(--shadow-md);
+/* Select specific styling */
+select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 1.25rem;
+  padding-right: 2.5rem;
 }
 
-.soft-accent {
-  background: var(--accent-soft);
-  border-left: 3px solid var(--accent);
+/* Checkboxes and radios */
+input[type="checkbox"],
+input[type="radio"] {
+  width: 1.25rem;
+  height: 1.25rem;
+  min-height: auto;
 }
-
 
 /* =========================
-   Utility classes
+   Typography Utilities
    ========================= */
 .text-muted {
   color: var(--muted-foreground);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.text-sm {
+  font-size: 0.8125rem;
+  letter-spacing: 0.01em;
+}
+
+.text-xs {
+  font-size: 0.75rem;
+  letter-spacing: 0.02em;
 }
 
 /* =========================
-   Focus visible
+   Theme Toggle - Premium style
    ========================= */
-*:focus-visible {
+.theme-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--muted-foreground);
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+
+.theme-toggle-btn:hover {
+  background: var(--secondary);
+  border-color: var(--primary);
+  color: var(--foreground);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+.theme-toggle-btn:focus-visible {
   outline: 2px solid var(--ring);
   outline-offset: 2px;
 }
 
 /* =========================
-   Scrollbar
+   Links - Clean and clear
+   ========================= */
+a:not(.btn-primary):not(.btn-secondary) {
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 500;
+  position: relative;
+  transition: color var(--transition-fast);
+}
+
+a:not(.btn-primary):not(.btn-secondary)::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.3;
+  transition: opacity var(--transition-fast);
+}
+
+a:not(.btn-primary):not(.btn-secondary):hover {
+  color: var(--accent);
+}
+
+a:not(.btn-primary):not(.btn-secondary):hover::after {
+  opacity: 0.6;
+}
+
+/* =========================
+   Layout & Spacing
+   ========================= */
+.container {
+  width: 100%;
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+@media (min-width: 640px) {
+  .container {
+    padding: 0 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .container {
+    padding: 0 2rem;
+  }
+}
+
+/* =========================
+   Accessibility & Focus
+   ========================= */
+*:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* Skip link for accessibility */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius);
+  text-decoration: none;
+  z-index: 9999;
+}
+
+.skip-link:focus {
+  top: 1rem;
+  left: 1rem;
+}
+
+/* =========================
+   Scrollbar - Premium styling
    ========================= */
 ::-webkit-scrollbar {
-  width: 10px;
+  width: 12px;
+  height: 12px;
 }
 
 ::-webkit-scrollbar-track {
   background: var(--background);
+  border-radius: 6px;
 }
 
 ::-webkit-scrollbar-thumb {
   background: var(--border);
-  border-radius: 5px;
+  border-radius: 6px;
+  border: 3px solid var(--background);
 }
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--muted-foreground);
 }
 
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) var(--background);
+}
+
+/* =========================
+   Animations & Transitions
+   ========================= */
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(6px);
+    transform: translateY(10px) scale(0.995);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes pulse-subtle {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
   }
 }
 
 .animate-fade-in {
-  animation: fadeIn 0.4s ease-out;
+  animation: fadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
+.animate-slide-in {
+  animation: slideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.animate-pulse-subtle {
+  animation: pulse-subtle 2s ease-in-out infinite;
+}
+
+/* =========================
+   Utility Classes
+   ========================= */
 .section-divider {
   height: 1px;
   background: var(--border);
-  margin: 1.5rem 0;
+  margin: 2rem 0;
+  border: none;
+}
+
+.glass-effect {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.dark .glass-effect {
+  background: rgba(30, 41, 59, 0.7);
+}
+
+/* Gradient text */
+.text-gradient {
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Loading skeleton */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--muted) 0%,
+    color-mix(in srgb, var(--muted) 80%, var(--background)) 50%,
+    var(--muted) 100%
+  );
+  background-size: 200% 100%;
+  animation: loading 1.5s ease-in-out infinite;
+  border-radius: var(--radius);
+}
+
+@keyframes loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* =========================
+   Mobile Optimizations
+   ========================= */
+@media (max-width: 640px) {
+  h1 {
+    font-size: 1.875rem;
+  }
+  
+  h2 {
+    font-size: 1.5rem;
+  }
+  
+  .card {
+    padding: 1.25rem;
+    border-radius: var(--radius);
+  }
+  
+  .btn-primary,
+  .btn-secondary {
+    padding: 0.75rem 1.25rem;
+    width: 100%; /* Better mobile UX */
+  }
+  
+  input,
+  select,
+  textarea {
+    font-size: 16px; /* Prevents iOS zoom on focus */
+    min-height: 52px;
+  }
+}
+
+/* Print styles */
+@media print {
+  .card {
+    border: 1px solid #ddd;
+    box-shadow: none;
+  }
+  
+  .btn-primary,
+  .btn-secondary {
+    display: none;
+  }
 }

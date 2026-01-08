@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function Navbar() {
   const { data: session } = useSession();
@@ -12,15 +12,21 @@ export default function Navbar() {
   const { theme, setTheme } = useTheme();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+  // ✅ FIX: hydration mismatch при theme (SSR vs client)
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   // Затваряме мобилното меню при смяна на страница
   const closeMobileMenu = () => setMobileMenuOpen(false);
 
   const navLinks = session
     ? [
         { href: "/dashboard", label: "Dashboard" },
-        { href: "/food", label: "Food" },       
-
+        { href: "/food", label: "Food" },
         { href: "/program", label: "Program" },
+        { href: "/progress", label: "Progress" },
         { href: "/profile", label: "Profile" },
       ]
     : [
@@ -28,8 +34,11 @@ export default function Navbar() {
         { href: "/register", label: "Register" },
       ];
 
+  const isDark = mounted ? theme === "dark" : false;
+
   const toggleTheme = () => {
-    setTheme(theme === "dark" ? "light" : "dark");
+    if (!mounted) return;
+    setTheme(isDark ? "light" : "dark");
   };
 
   return (
@@ -67,10 +76,15 @@ export default function Navbar() {
             {/* Theme Toggle Button - Desktop */}
             <button
               onClick={toggleTheme}
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors px-3 py-1.5 border border-border rounded-md hover:border-foreground/30"
-              aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+              disabled={!mounted}
+              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors px-3 py-1.5 border border-border rounded-md hover:border-foreground/30 disabled:opacity-60 disabled:cursor-not-allowed"
+              aria-label={
+                mounted
+                  ? `Switch to ${isDark ? "light" : "dark"} mode`
+                  : "Toggle theme"
+              }
             >
-              {theme === "dark" ? "Light Mode" : "Dark Mode"}
+              {mounted ? (isDark ? "Light Mode" : "Dark Mode") : "Theme"}
             </button>
 
             {session && (
@@ -88,10 +102,15 @@ export default function Navbar() {
             {/* Theme Toggle for mobile (outside menu) */}
             <button
               onClick={toggleTheme}
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors px-3 py-1.5 border border-border rounded-md hover:border-foreground/30"
-              aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+              disabled={!mounted}
+              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors px-3 py-1.5 border border-border rounded-md hover:border-foreground/30 disabled:opacity-60 disabled:cursor-not-allowed"
+              aria-label={
+                mounted
+                  ? `Switch to ${isDark ? "light" : "dark"} mode`
+                  : "Toggle theme"
+              }
             >
-              {theme === "dark" ? "Light" : "Dark"}
+              {mounted ? (isDark ? "Light" : "Dark") : "Theme"}
             </button>
 
             <button

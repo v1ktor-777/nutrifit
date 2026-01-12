@@ -77,9 +77,6 @@ export default function Navbar() {
               className="flex items-center gap-2 group"
               onClick={closeMobileMenu}
             >
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-accent to-primary flex items-center justify-center">
-                <span className="text-white font-bold text-sm">NF</span>
-              </div>
               <span className="text-lg font-semibold tracking-tight group-hover:text-accent transition-colors">
                 NutriFit
               </span>

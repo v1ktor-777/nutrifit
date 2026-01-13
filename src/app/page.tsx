@@ -147,7 +147,6 @@ export default function Home() {
               </div>
             </div>
           </section>
-./\
           <section className="container max-w-3xl mx-auto px-4 pb-16">
             <div className="card text-center p-8 md:p-10 space-y-6 border border-border">
               <div className="space-y-4">

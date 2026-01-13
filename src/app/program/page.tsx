@@ -251,7 +251,7 @@ export default function ProgramPage() {
   const isSelectedDateMarked = workoutDates.includes(selectedDate);
 
   return (
-    <div className="max-w-5xl space-y-14">
+    <div className="w-full max-w-6xl space-y-14">
       <header className="space-y-3">
         <h1 className="text-3xl font-semibold tracking-tight">{t("program.title")}</h1>
         <p className="text-muted max-w-2xl">{t("program.subtitle")}</p>

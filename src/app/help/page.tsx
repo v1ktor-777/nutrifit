@@ -6,7 +6,7 @@ export default function HelpPage() {
   const { t } = useI18n();
 
   return (
-    <div className="space-y-10 max-w-4xl">
+    <div className="space-y-10 w-full max-w-5xl">
       <header className="space-y-2">
         <h1 className="text-3xl font-semibold tracking-tight">{t("help.title")}</h1>
       </header>
@@ -57,6 +57,7 @@ export default function HelpPage() {
         <ul className="list-disc pl-5 space-y-2 text-sm text-muted">
           <li>{t("help.settingsPoint1")}</li>
           <li>{t("help.settingsPoint2")}</li>
+          <li>{t("help.settingsPoint3")}</li>
         </ul>
       </section>
     </div>

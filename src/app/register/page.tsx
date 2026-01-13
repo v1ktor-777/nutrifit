@@ -35,37 +35,58 @@ export default function RegisterPage() {
   };
 
   return (
-    <div style={{ padding: 24 }}>
-      <h1>{t("auth.register")}</h1>
+    <div className="w-full max-w-md">
+      <div className="card space-y-6">
+        <div className="space-y-1">
+          <h1 className="text-2xl font-semibold">{t("auth.register")}</h1>
+        </div>
 
-      <form onSubmit={handleSubmit}>
-        <input
-          name="name"
-          placeholder={t("auth.name")}
-          value={form.name}
-          onChange={handleChange}
-        />
-        <br />
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-muted-foreground" htmlFor="register-name">
+              {t("auth.name")}
+            </label>
+            <input
+              id="register-name"
+              name="name"
+              placeholder={t("auth.name")}
+              value={form.name}
+              onChange={handleChange}
+            />
+          </div>
 
-        <input
-          name="email"
-          placeholder={t("auth.email")}
-          value={form.email}
-          onChange={handleChange}
-        />
-        <br />
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-muted-foreground" htmlFor="register-email">
+              {t("auth.email")}
+            </label>
+            <input
+              id="register-email"
+              name="email"
+              placeholder={t("auth.email")}
+              value={form.email}
+              onChange={handleChange}
+            />
+          </div>
 
-        <input
-          type="password"
-          name="password"
-          placeholder={t("auth.password")}
-          value={form.password}
-          onChange={handleChange}
-        />
-        <br />
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-muted-foreground" htmlFor="register-password">
+              {t("auth.password")}
+            </label>
+            <input
+              id="register-password"
+              type="password"
+              name="password"
+              placeholder={t("auth.password")}
+              value={form.password}
+              onChange={handleChange}
+            />
+          </div>
 
-        <button type="submit">{t("auth.register")}</button>
-      </form>
+          <button type="submit" className="btn-primary w-full">
+            {t("auth.register")}
+          </button>
+        </form>
+      </div>
     </div>
   );
 }

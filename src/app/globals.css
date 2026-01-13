@@ -28,7 +28,7 @@
   --muted-foreground: oklch(0.556 0 0);
 
   /* Accent - Energetic blue (fitness vibe) */
-  --accent: oklch(0.97 0 0);
+  --accent: oklch(60% 0.17 255);
   --accent-foreground: oklch(0.205 0 0);
   --accent-soft: rgba(14, 165, 233, 0.08);
 
@@ -96,7 +96,7 @@
   --muted: oklch(0.269 0 0);
   --muted-foreground: oklch(0.708 0 0);
 
-  --accent: oklch(0.269 0 0);
+  --accent: oklch(74% 0.17 255);
   --accent-foreground: oklch(0.985 0 0);
   --accent-soft: rgba(56, 189, 248, 0.1);
 

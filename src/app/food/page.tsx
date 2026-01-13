@@ -209,7 +209,7 @@ export default function FoodPage() {
   }
 
   return (
-    <div className="space-y-10 max-w-4xl">
+    <div className="space-y-10 w-full max-w-5xl">
       <h1 className="text-2xl font-semibold">{t("food.title")}</h1>
 
       <div className="card space-y-4">

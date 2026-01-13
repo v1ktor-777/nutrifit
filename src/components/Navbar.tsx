@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import { useI18n } from "@/lib/i18n/LanguageProvider";
+import ToggleSwitch from "@/components/ToggleSwitch";
 
 export default function Navbar() {
   const { data: session } = useSession();
@@ -36,7 +37,6 @@ export default function Navbar() {
         { href: "/food", label: t("nav.food") },
         { href: "/program", label: t("nav.program") },
         { href: "/progress", label: t("nav.progress") },
-        { href: "/profile", label: t("nav.profile") },
       ]
     : [
         { href: "/login", label: t("nav.login") },
@@ -44,22 +44,25 @@ export default function Navbar() {
       ];
 
   const isDark = themeMounted ? theme === "dark" : false;
+  const isBg = i18nMounted ? lang === "bg" : false;
 
-  const toggleTheme = () => {
+  const themeStateLabel = themeMounted
+    ? isDark
+      ? t("nav.darkMode")
+      : t("nav.lightMode")
+    : t("nav.theme");
+
+  const handleThemeChange = (checked: boolean) => {
     if (!themeMounted) return;
-    setTheme(isDark ? "light" : "dark");
+    setTheme(checked ? "dark" : "light");
   };
 
-  const toggleLanguage = () => {
+  const handleLanguageChange = (checked: boolean) => {
     if (!i18nMounted) return;
-    setLang(lang === "bg" ? "en" : "bg");
+    setLang(checked ? "bg" : "en");
   };
 
-  const languageToggleLabel = i18nMounted
-    ? lang === "bg"
-      ? t("nav.languageToEn")
-      : t("nav.languageToBg")
-    : t("nav.languageToBg");
+  const languageLabel = t("nav.language");
 
   return (
     <>
@@ -74,7 +77,7 @@ export default function Navbar() {
             {/* Premium Logo */}
             <Link
               href="/"
-              className="flex items-center gap-2 group"
+              className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-surface/50 backdrop-blur-sm border border-white/5 transition-colors hover:bg-surface/70 group"
               onClick={closeMobileMenu}
             >
               <span className="text-lg font-semibold tracking-tight group-hover:text-accent transition-colors">
@@ -110,50 +113,34 @@ export default function Navbar() {
               {/* Utility chips - Premium style */}
               <div className="flex items-center gap-2">
                 {/* Theme Toggle Chip */}
-                <button
-                  onClick={toggleTheme}
-                  disabled={!themeMounted}
-                  className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-full border border-border/50 bg-surface/50 backdrop-blur-sm hover:bg-surface hover:border-accent/30 transition-all disabled:opacity-60 disabled:cursor-not-allowed group"
-                  aria-label={
-                    themeMounted
-                      ? isDark
-                        ? t("nav.switchToLight")
-                        : t("nav.switchToDark")
-                      : t("nav.theme")
-                  }
-                >
-                  {themeMounted ? (
-                    <>
-                      <div className={`w-5 h-5 rounded-full flex items-center justify-center ${
-                        isDark 
-                          ? "bg-amber-100 text-amber-900" 
-                          : "bg-slate-800 text-slate-200"
-                      }`}>
-                        {isDark ? "☀️" : "🌙"}
-                      </div>
-                      <span className="text-muted-foreground group-hover:text-foreground">
-                        {isDark ? t("nav.lightMode") : t("nav.darkMode")}
-                      </span>
-                    </>
-                  ) : (
-                    <span>{t("nav.theme")}</span>
-                  )}
-                </button>
+                <div className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-full border border-border/50 bg-surface/50 backdrop-blur-sm hover:bg-surface hover:border-accent/30 transition-all group">
+                  <ToggleSwitch
+                    id="theme-toggle"
+                    checked={isDark}
+                    onCheckedChange={handleThemeChange}
+                    disabled={!themeMounted}
+                    label={themeStateLabel}
+                    labelPosition="left"
+                    labelClassName="text-muted-foreground group-hover:text-foreground"
+                    ariaLabel={t("nav.theme")}
+                  />
+                </div>
 
                 {/* Language Toggle Chip */}
-                <button
-                  onClick={toggleLanguage}
-                  disabled={!i18nMounted}
-                  className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-full border border-border/50 bg-surface/50 backdrop-blur-sm hover:bg-surface hover:border-accent/30 transition-all disabled:opacity-60 disabled:cursor-not-allowed group"
-                  aria-label={t("nav.languageLabel")}
-                >
-                  <div className="w-5 h-5 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white text-xs font-bold">
-                    {lang === "bg" ? "БГ" : "EN"}
-                  </div>
-                  <span className="text-muted-foreground group-hover:text-foreground">
-                    {languageToggleLabel}
-                  </span>
-                </button>
+                <div className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-full border border-border/50 bg-surface/50 backdrop-blur-sm hover:bg-surface hover:border-accent/30 transition-all group">
+                  <ToggleSwitch
+                    id="language-toggle"
+                    checked={isBg}
+                    onCheckedChange={handleLanguageChange}
+                    disabled={!i18nMounted}
+                    label={languageLabel}
+                    labelPosition="left"
+                    labelClassName="text-muted-foreground group-hover:text-foreground"
+                    leftLabel={t("nav.languageToEn")}
+                    rightLabel={t("nav.languageToBg")}
+                    ariaLabel={t("nav.languageLabel")}
+                  />
+                </div>
 
                 {/* Help Chip */}
                 <Link
@@ -167,11 +154,23 @@ export default function Navbar() {
                     {t("help.nav")}
                   </span>
                 </Link>
-
                 {/* User Profile/Logout */}
                 {session ? (
                   <div className="flex items-center gap-2">
                     <div className="h-6 w-px bg-border/50" />
+                    <Link
+                      href="/profile"
+                      className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-full border border-border/50 bg-surface/50 backdrop-blur-sm hover:bg-surface hover:border-accent/30 transition-all group"
+                    >
+                      <div className="w-5 h-5 rounded-full bg-gradient-to-br from-slate-700 to-slate-900 flex items-center justify-center text-white">
+                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 21v-2a4 4 0 00-3-3.87M4 21v-2a4 4 0 013-3.87M12 11a4 4 0 100-8 4 4 0 000 8z" />
+                        </svg>
+                      </div>
+                      <span className="text-muted-foreground group-hover:text-foreground">
+                        {t("nav.profile")}
+                      </span>
+                    </Link>
                     <button
                       onClick={() => signOut({ callbackUrl: "/login" })}
                       className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-full border border-border/50 bg-surface/50 backdrop-blur-sm hover:bg-red-500/10 hover:border-red-500/30 hover:text-red-500 transition-all group"
@@ -191,32 +190,30 @@ export default function Navbar() {
             {/* Mobile menu button */}
             <div className="flex md:hidden items-center gap-2">
               {/* Theme Toggle for mobile */}
-              <button
-                onClick={toggleTheme}
-                disabled={!themeMounted}
-                className="flex items-center justify-center w-9 h-9 rounded-full border border-border bg-surface hover:bg-surface/80 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
-                aria-label={t("nav.theme")}
-              >
-                {themeMounted ? (
-                  isDark ? (
-                    <span className="text-lg">☀️</span>
-                  ) : (
-                    <span className="text-lg">🌙</span>
-                  )
-                ) : (
-                  <span className="text-sm">⚪</span>
-                )}
-              </button>
+              <div className="px-2 py-1 rounded-full border border-border bg-surface/50 backdrop-blur-sm">
+                <ToggleSwitch
+                  id="theme-toggle-mobile"
+                  checked={isDark}
+                  onCheckedChange={handleThemeChange}
+                  disabled={!themeMounted}
+                  size="sm"
+                  ariaLabel={t("nav.theme")}
+                />
+              </div>
 
               {/* Language Toggle for mobile */}
-              <button
-                onClick={toggleLanguage}
-                disabled={!i18nMounted}
-                className="flex items-center justify-center w-9 h-9 rounded-full border border-border bg-surface hover:bg-surface/80 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
-                aria-label={t("nav.languageLabel")}
-              >
-                <span className="text-xs font-bold">{lang === "bg" ? "БГ" : "EN"}</span>
-              </button>
+              <div className="px-2 py-1 rounded-full border border-border bg-surface/50 backdrop-blur-sm">
+                <ToggleSwitch
+                  id="language-toggle-mobile"
+                  checked={isBg}
+                  onCheckedChange={handleLanguageChange}
+                  disabled={!i18nMounted}
+                  size="sm"
+                  leftLabel={t("nav.languageToEn")}
+                  rightLabel={t("nav.languageToBg")}
+                  ariaLabel={t("nav.languageLabel")}
+                />
+              </div>
 
               {/* Mobile menu toggle */}
               <button
@@ -245,37 +242,32 @@ export default function Navbar() {
           <div className="relative glass-effect border-t border-white/10 animate-slide-in">
             <div className="container py-6">
               {/* Utility chips in mobile */}
-              <div className="flex items-center justify-center gap-3 mb-8">
-                <button
-                  onClick={toggleTheme}
-                  disabled={!themeMounted}
-                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-full border border-border bg-surface hover:bg-surface/80 transition-colors disabled:opacity-60"
-                >
-                  {themeMounted ? (
-                    isDark ? (
-                      <>
-                        <span>☀️</span>
-                        <span>{t("nav.lightMode")}</span>
-                      </>
-                    ) : (
-                      <>
-                        <span>🌙</span>
-                        <span>{t("nav.darkMode")}</span>
-                      </>
-                    )
-                  ) : (
-                    <span>{t("nav.theme")}</span>
-                  )}
-                </button>
+              <div className="flex flex-wrap items-center justify-center gap-3 mb-8">
+                <div className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-full border border-border bg-surface/50 hover:bg-surface/80 transition-colors">
+                  <ToggleSwitch
+                    id="theme-toggle-menu"
+                    checked={isDark}
+                    onCheckedChange={handleThemeChange}
+                    disabled={!themeMounted}
+                    label={themeStateLabel}
+                    labelPosition="left"
+                    ariaLabel={t("nav.theme")}
+                  />
+                </div>
 
-                <button
-                  onClick={toggleLanguage}
-                  disabled={!i18nMounted}
-                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-full border border-border bg-surface hover:bg-surface/80 transition-colors disabled:opacity-60"
-                >
-                  <span className="font-bold">{lang === "bg" ? "БГ" : "EN"}</span>
-                  <span>{languageToggleLabel}</span>
-                </button>
+                <div className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-full border border-border bg-surface/50 hover:bg-surface/80 transition-colors">
+                  <ToggleSwitch
+                    id="language-toggle-menu"
+                    checked={isBg}
+                    onCheckedChange={handleLanguageChange}
+                    disabled={!i18nMounted}
+                    label={languageLabel}
+                    labelPosition="left"
+                    leftLabel={t("nav.languageToEn")}
+                    rightLabel={t("nav.languageToBg")}
+                    ariaLabel={t("nav.languageLabel")}
+                  />
+                </div>
 
                 <Link
                   href="/help"
@@ -307,10 +299,19 @@ export default function Navbar() {
                   </Link>
                 ))}
               </div>
-
               {/* Logout in mobile */}
               {session && (
-                <div className="mt-8 pt-8 border-t border-border/50">
+                <div className="mt-8 pt-8 border-t border-border/50 space-y-3">
+                  <Link
+                    href="/profile"
+                    className="w-full flex items-center justify-center gap-2 px-6 py-4 text-base font-medium rounded-2xl border border-border text-foreground hover:bg-surface transition-colors"
+                    onClick={closeMobileMenu}
+                  >
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 21v-2a4 4 0 00-3-3.87M4 21v-2a4 4 0 013-3.87M12 11a4 4 0 100-8 4 4 0 000 8z" />
+                    </svg>
+                    <span>{t("nav.profile")}</span>
+                  </Link>
                   <button
                     onClick={() => {
                       signOut({ callbackUrl: "/login" });
@@ -372,3 +373,4 @@ function XIcon(props: React.SVGProps<SVGSVGElement>) {
     </svg>
   );
 }
+

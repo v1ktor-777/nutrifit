@@ -124,7 +124,7 @@ export default function ProfilePage() {
   if (!data) return <p className="text-muted">{t("profile.noData")}</p>;
 
   return (
-    <div className="space-y-10 max-w-5xl">
+    <div className="space-y-10 w-full max-w-6xl">
       <header className="space-y-2">
         <h1 className="text-3xl font-semibold tracking-tight">{t("profile.title")}</h1>
         <p className="text-muted">{t("profile.subtitle")}</p>

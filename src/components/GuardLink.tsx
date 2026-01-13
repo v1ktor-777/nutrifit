@@ -45,7 +45,7 @@ export default function GuardLink({ href, className, children }: Props) {
           onClick={() => setOpen(false)}
         >
           <div
-            className="w-full max-w-lg rounded-2xl border border-border shadow-2xl overflow-hidden bg-white text-neutral-900 dark:bg-neutral-900 dark:text-neutral-100 animate-[modalIn_.12s_ease-out]"
+            className="w-full max-w-xl rounded-2xl border border-border shadow-2xl overflow-hidden bg-white/95 text-neutral-900 backdrop-blur dark:bg-neutral-900/95 dark:text-neutral-100 animate-[modalIn_.12s_ease-out]"
             onClick={(e) => e.stopPropagation()}
             role="dialog"
             aria-modal="true"
@@ -54,8 +54,11 @@ export default function GuardLink({ href, className, children }: Props) {
             <div className="p-5 md:p-6 border-b border-border bg-gradient-to-r from-black/5 to-transparent dark:from-white/5">
               <div className="flex items-start justify-between gap-4">
                 <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-xl border border-border flex items-center justify-center bg-white/70 dark:bg-neutral-800">
-                    <span className="text-lg">🔒</span>
+                  <div className="h-11 w-11 rounded-2xl border border-border flex items-center justify-center bg-gradient-to-br from-accent/20 to-primary/10 text-accent">
+                    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <rect x="4" y="10" width="16" height="10" rx="2" />
+                      <path d="M8 10V7a4 4 0 0 1 8 0v3" />
+                    </svg>
                   </div>
                   <div>
                     <p className="text-lg font-semibold">{t("guard.title")}</p>
@@ -68,28 +71,43 @@ export default function GuardLink({ href, className, children }: Props) {
                 <button
                   type="button"
                   onClick={() => setOpen(false)}
-                  className="text-sm text-neutral-600 hover:text-neutral-900 dark:text-neutral-300 dark:hover:text-neutral-100"
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-border/60 text-neutral-600 transition-colors hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-800 dark:hover:text-neutral-100"
                   aria-label={t("common.close")}
                 >
-                  ✕
+                  <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
                 </button>
               </div>
             </div>
 
-            <div className="p-5 md:p-6 space-y-4">
-              <div className="rounded-xl border border-border bg-white/60 dark:bg-neutral-800/50 p-4">
+            <div className="p-5 md:p-6 space-y-5">
+              <div className="rounded-xl border border-border bg-white/70 dark:bg-neutral-800/50 p-4">
                 <p className="font-medium mb-2">{t("guard.benefitsTitle")}</p>
                 <ul className="space-y-2 text-sm text-neutral-700 dark:text-neutral-200">
                   <li className="flex gap-2">
-                    <span>✅</span>
+                    <span className="mt-0.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300">
+                      <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M20 6L9 17l-5-5" />
+                      </svg>
+                    </span>
                     <span>{t("guard.benefitDashboard")}</span>
                   </li>
                   <li className="flex gap-2">
-                    <span>✅</span>
+                    <span className="mt-0.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300">
+                      <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M20 6L9 17l-5-5" />
+                      </svg>
+                    </span>
                     <span>{t("guard.benefitBodyStats")}</span>
                   </li>
                   <li className="flex gap-2">
-                    <span>✅</span>
+                    <span className="mt-0.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300">
+                      <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M20 6L9 17l-5-5" />
+                      </svg>
+                    </span>
                     <span>{t("guard.benefitProgram")}</span>
                   </li>
                 </ul>
@@ -144,3 +162,5 @@ export default function GuardLink({ href, className, children }: Props) {
     </>
   );
 }
+
+

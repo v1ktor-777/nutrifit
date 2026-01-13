@@ -7,7 +7,7 @@ export default function Footer() {
 
   return (
     <footer className="border-t border-border py-6">
-      <div className="container text-sm text-muted-foreground">
+      <div className="container text-sm text-muted-foreground text-center">
         {t("footer.rights")}
       </div>
     </footer>

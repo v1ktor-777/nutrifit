@@ -22,6 +22,9 @@ export const messages = {
       languageToBg: "BG",
       languageToEn: "EN",
       languageLabel: "Switch language",
+      language: "Language",
+      toggleOn: "ON",
+      toggleOff: "OFF",
     },
     common: {
       loading: "Loading...",
@@ -272,8 +275,9 @@ export const messages = {
       bodyStatsPoint2: "BMI is calculated using your height.",
       bodyStatsPoint3: "Set height and sex in Profile for better accuracy.",
       settingsTitle: "How to switch language or theme",
-      settingsPoint1: "Use the language button in the top bar to switch BG/EN.",
+      settingsPoint1: "Use the language toggle in the top bar to switch BG/EN.",
       settingsPoint2: "Use the theme toggle to switch Light/Dark.",
+      settingsPoint3: "Profile is on the right, next to Logout.",
     },
   },
   bg: {
@@ -297,6 +301,9 @@ export const messages = {
       languageToBg: "BG",
       languageToEn: "EN",
       languageLabel: "Смени езика",
+      language: "Език",
+      toggleOn: "ВКЛ",
+      toggleOff: "ИЗКЛ",
     },
     common: {
       loading: "Зареждане...",
@@ -547,8 +554,9 @@ export const messages = {
       bodyStatsPoint2: "BMI се изчислява на база ръст.",
       bodyStatsPoint3: "Задай ръст и пол в Профил за по-точни данни.",
       settingsTitle: "Как да сменя език или тема",
-      settingsPoint1: "Използвай бутона за език в горната лента за BG/EN.",
-      settingsPoint2: "Използвай бутона за тема за Светъл/Тъмен режим.",
+      settingsPoint1: "Използвай езиковия превключвател в горната лента за BG/EN.",
+      settingsPoint2: "Използвай превключвателя за тема за Светъл/Тъмен режим.",
+      settingsPoint3: "Профилът е вдясно до Изход.",
     },
   },
 } as const;

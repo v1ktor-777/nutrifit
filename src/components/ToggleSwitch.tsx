@@ -40,6 +40,10 @@ export default function ToggleSwitch({
   const knobTranslate = isSmall ? "peer-checked:translate-x-4" : "peer-checked:translate-x-5";
   const labelText = isSmall ? "text-[10px]" : "text-xs";
   const stateText = isSmall ? "text-[8px]" : "text-[9px]";
+  const ariaLabelText =
+    ariaLabel ?? (typeof label === "string" || typeof label === "number"
+      ? String(label)
+      : "Toggle");
 
   return (
     <label
@@ -78,7 +82,7 @@ export default function ToggleSwitch({
           checked={checked}
           onChange={(event) => onCheckedChange(event.target.checked)}
           disabled={disabled}
-          aria-label={ariaLabel || label || "Toggle"}
+          aria-label={ariaLabelText}
         />
         <span
           className={cn(

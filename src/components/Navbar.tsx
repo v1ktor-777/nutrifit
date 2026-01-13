@@ -239,7 +239,7 @@ export default function Navbar() {
       {mobileMenuOpen && (
         <div className="fixed inset-0 z-40 md:hidden pt-16">
           <div 
-            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            className="absolute inset-0 bg-white"
             onClick={closeMobileMenu}
           />
           <div className="relative glass-effect border-t border-white/10 animate-slide-in">

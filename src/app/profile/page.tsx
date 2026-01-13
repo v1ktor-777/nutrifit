@@ -1,7 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useI18n } from "@/lib/i18n/LanguageProvider";
+import type { GoalStrategy, GoalType } from "@/lib/goal";
 import { logError, toUserError } from "@/lib/uiError";
 
 type ProfileData = {
@@ -11,14 +13,23 @@ type ProfileData = {
   sex?: "male" | "female" | null;
 };
 
+type GoalData = {
+  goalType: GoalType;
+  strategy: GoalStrategy;
+  targetWeightKg: number | null;
+  targetDate: string | null;
+};
+
 export default function ProfilePage() {
   const { t } = useI18n();
   const [data, setData] = useState<ProfileData | null>(null);
+  const [goal, setGoal] = useState<GoalData | null>(null);
   const [loading, setLoading] = useState(true);
 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [ok, setOk] = useState<string | null>(null);
+  const [goalError, setGoalError] = useState<string | null>(null);
 
   const [heightCm, setHeightCm] = useState<string>("");
   const [sex, setSex] = useState<string>("");
@@ -34,24 +45,55 @@ export default function ProfilePage() {
     return Boolean(data?.heightCm) && Boolean(data?.sex);
   }, [data]);
 
+  const goalTypeLabels = useMemo(
+    () => ({
+      gain: t("goal.typeGain"),
+      lose: t("goal.typeLose"),
+      maintain: t("goal.typeMaintain"),
+    }),
+    [t]
+  );
+
+  const strategyLabels = useMemo(
+    () => ({
+      lean_bulk: t("goal.strategyLeanBulk"),
+      dirty_bulk: t("goal.strategyDirtyBulk"),
+      cut: t("goal.strategyCut"),
+      recomp: t("goal.strategyRecomp"),
+      maintain: t("goal.strategyMaintain"),
+    }),
+    [t]
+  );
+
+  const goalSummary =
+    goal &&
+    !(goal.goalType === "maintain" && goal.targetWeightKg == null && !goal.targetDate)
+      ? goal
+      : null;
+
   async function load() {
     setError(null);
     setOk(null);
+    setGoalError(null);
     setLoading(true);
 
     try {
-      const res = await fetch("/api/profile");
-      const json = await res.json().catch((err) => {
+      const [profileRes, goalRes] = await Promise.all([
+        fetch("/api/profile"),
+        fetch("/api/goal"),
+      ]);
+
+      const profileJson = await profileRes.json().catch((err) => {
         logError("profile.load.parse", err);
         return null;
       });
 
-      if (!res.ok) {
-        logError("profile.load", { status: res.status, body: json });
-        throw { status: res.status };
+      if (!profileRes.ok) {
+        logError("profile.load", { status: profileRes.status, body: profileJson });
+        throw { status: profileRes.status };
       }
 
-      const d = (json?.data ?? null) as ProfileData | null;
+      const d = (profileJson?.data ?? null) as ProfileData | null;
       setData(d);
 
       const h = d?.heightCm;
@@ -61,10 +103,24 @@ export default function ProfilePage() {
       setSex(s === null || s === undefined ? "" : String(s));
 
       setEditing(false);
+
+      if (!goalRes.ok) {
+        const goalText = await goalRes.text().catch(() => "");
+        logError("profile.load.goal", { status: goalRes.status, body: goalText });
+        setGoalError(toUserError({ status: goalRes.status }, t));
+        setGoal(null);
+      } else {
+        const goalJson = await goalRes.json().catch((err) => {
+          logError("profile.load.goal.parse", err);
+          return null;
+        });
+        setGoal(goalJson?.data ?? null);
+      }
     } catch (e: unknown) {
       logError("profile.load", e);
       setError(toUserError(e, t));
       setData(null);
+      setGoal(null);
     } finally {
       setLoading(false);
     }
@@ -170,6 +226,60 @@ export default function ProfilePage() {
             </span>
           </p>
         </div>
+      </div>
+
+      <div className="card space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+          <div>
+            <h2 className="text-lg font-semibold">{t("goal.summaryTitle")}</h2>
+            <p className="text-sm text-muted">{t("goal.summarySubtitle")}</p>
+          </div>
+          <Link
+            href="/progress"
+            className="btn-secondary w-full sm:w-auto text-center"
+          >
+            {goalSummary ? t("goal.editGoal") : t("goal.setGoal")}
+          </Link>
+        </div>
+
+        {goalError && (
+          <div className="rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
+            {goalError}
+          </div>
+        )}
+
+        {goalSummary ? (
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="rounded-lg border border-border/60 p-3">
+              <p className="text-xs text-muted">{t("goal.goalType")}</p>
+              <p className="text-sm font-semibold">
+                {goalTypeLabels[goalSummary.goalType]}
+              </p>
+            </div>
+            <div className="rounded-lg border border-border/60 p-3">
+              <p className="text-xs text-muted">{t("goal.strategy")}</p>
+              <p className="text-sm font-semibold">
+                {strategyLabels[goalSummary.strategy]}
+              </p>
+            </div>
+            <div className="rounded-lg border border-border/60 p-3">
+              <p className="text-xs text-muted">{t("goal.targetWeight")}</p>
+              <p className="text-sm font-semibold">
+                {goalSummary.targetWeightKg != null
+                  ? `${goalSummary.targetWeightKg} kg`
+                  : t("common.noData")}
+              </p>
+            </div>
+            <div className="rounded-lg border border-border/60 p-3">
+              <p className="text-xs text-muted">{t("goal.targetDate")}</p>
+              <p className="text-sm font-semibold">
+                {goalSummary.targetDate ?? t("common.noData")}
+              </p>
+            </div>
+          </div>
+        ) : (
+          <p className="text-sm text-muted">{t("goal.noGoal")}</p>
+        )}
       </div>
 
       <div className="card space-y-4 max-w-md">

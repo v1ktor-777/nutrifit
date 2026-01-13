@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 type ToggleSwitchProps = {
@@ -6,13 +7,13 @@ type ToggleSwitchProps = {
   onCheckedChange: (checked: boolean) => void;
   disabled?: boolean;
   ariaLabel?: string;
-  label?: string;
+  label?: ReactNode;
   labelPosition?: "left" | "right";
   labelClassName?: string;
-  leftLabel?: string;
-  rightLabel?: string;
-  onStateLabel?: string;
-  offStateLabel?: string;
+  leftLabel?: ReactNode;
+  rightLabel?: ReactNode;
+  onStateLabel?: ReactNode;
+  offStateLabel?: ReactNode;
   size?: "sm" | "md";
   className?: string;
 };
@@ -49,10 +50,25 @@ export default function ToggleSwitch({
       )}
     >
       {label && labelPosition === "left" && (
-        <span className={cn(labelText, "text-muted-foreground", labelClassName)}>{label}</span>
+        <span
+          className={cn(
+            labelText,
+            "inline-flex items-center text-muted-foreground",
+            labelClassName,
+          )}
+        >
+          {label}
+        </span>
       )}
       {leftLabel && (
-        <span className={cn(labelText, "font-semibold text-muted-foreground")}>{leftLabel}</span>
+        <span
+          className={cn(
+            labelText,
+            "inline-flex items-center justify-center font-semibold text-muted-foreground",
+          )}
+        >
+          {leftLabel}
+        </span>
       )}
       <span className={cn("relative inline-flex items-center", trackSize)}>
         <input
@@ -74,7 +90,7 @@ export default function ToggleSwitch({
         {offStateLabel && (
           <span
             className={cn(
-              "absolute left-1 font-semibold uppercase text-muted-foreground/70 transition-opacity",
+              "absolute left-1 inline-flex items-center justify-center font-semibold uppercase text-muted-foreground/70 transition-opacity",
               stateText,
               "peer-checked:opacity-0 pointer-events-none",
             )}
@@ -85,7 +101,7 @@ export default function ToggleSwitch({
         {onStateLabel && (
           <span
             className={cn(
-              "absolute right-1 font-semibold uppercase text-muted-foreground/70 opacity-0 transition-opacity",
+              "absolute right-1 inline-flex items-center justify-center font-semibold uppercase text-muted-foreground/70 opacity-0 transition-opacity",
               stateText,
               "peer-checked:opacity-100 pointer-events-none",
             )}
@@ -102,10 +118,25 @@ export default function ToggleSwitch({
         />
       </span>
       {rightLabel && (
-        <span className={cn(labelText, "font-semibold text-muted-foreground")}>{rightLabel}</span>
+        <span
+          className={cn(
+            labelText,
+            "inline-flex items-center justify-center font-semibold text-muted-foreground",
+          )}
+        >
+          {rightLabel}
+        </span>
       )}
       {label && labelPosition === "right" && (
-        <span className={cn(labelText, "text-muted-foreground", labelClassName)}>{label}</span>
+        <span
+          className={cn(
+            labelText,
+            "inline-flex items-center text-muted-foreground",
+            labelClassName,
+          )}
+        >
+          {label}
+        </span>
       )}
     </label>
   );

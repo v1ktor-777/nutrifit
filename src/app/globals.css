@@ -494,6 +494,26 @@ a:not(.btn-primary):not(.btn-secondary):hover::after {
   opacity: 0.6;
 }
 
+a.no-underline {
+  text-decoration: none;
+}
+
+a.no-underline:not(.btn-primary):not(.btn-secondary)::after,
+a.no-underline:not(.btn-primary):not(.btn-secondary):hover::after {
+  content: none;
+  opacity: 0;
+}
+
+.navbar a:not(.btn-primary):not(.btn-secondary)::after,
+.navbar a:not(.btn-primary):not(.btn-secondary):hover::after {
+  content: none;
+  opacity: 0;
+}
+
+a {
+  text-decoration: none !important;
+}
+
 /* =========================
    Layout & Spacing
    ========================= */
@@ -637,6 +657,18 @@ a:not(.btn-primary):not(.btn-secondary):hover::after {
 
 .dark .glass-effect {
   background: rgba(30, 41, 59, 0.7);
+}
+
+@media (max-width: 768px) {
+  .glass-effect {
+    background: var(--background);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  .dark .glass-effect {
+    background: var(--background);
+  }
 }
 
 /* Gradient text */

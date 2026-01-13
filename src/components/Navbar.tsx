@@ -33,24 +33,18 @@ export default function Navbar() {
 
   const navLinks = session
     ? [
-        { href: "/dashboard", label: t("nav.dashboard") },
-        { href: "/food", label: t("nav.food") },
-        { href: "/program", label: t("nav.program") },
-        { href: "/progress", label: t("nav.progress") },
-      ]
+      { href: "/dashboard", label: t("nav.dashboard") },
+      { href: "/food", label: t("nav.food") },
+      { href: "/program", label: t("nav.program") },
+      { href: "/progress", label: t("nav.progress") },
+    ]
     : [
-        { href: "/login", label: t("nav.login") },
-        { href: "/register", label: t("nav.register") },
-      ];
+      { href: "/login", label: t("nav.login") },
+      { href: "/register", label: t("nav.register") },
+    ];
 
   const isDark = themeMounted ? theme === "dark" : false;
   const isBg = i18nMounted ? lang === "bg" : false;
-
-  const themeStateLabel = themeMounted
-    ? isDark
-      ? t("nav.darkMode")
-      : t("nav.lightMode")
-    : t("nav.theme");
 
   const handleThemeChange = (checked: boolean) => {
     if (!themeMounted) return;
@@ -62,16 +56,25 @@ export default function Navbar() {
     setLang(checked ? "bg" : "en");
   };
 
-  const languageLabel = t("nav.language");
+  const themeIcon = isDark ? (
+    <MoonIcon className="h-4 w-4" />
+  ) : (
+    <SunIcon className="h-4 w-4" />
+  );
+
+  const themeIconSm = isDark ? (
+    <MoonIcon className="h-3.5 w-3.5" />
+  ) : (
+    <SunIcon className="h-3.5 w-3.5" />
+  );
 
   return (
     <>
       {/* Premium Navbar with glass effect */}
-      <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        scrolled 
-          ? "glass-effect border-b border-white/10 shadow-lg" 
-          : "bg-transparent"
-      }`}>
+      <nav className={`navbar fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled
+          ? "glass-effect border-b border-white/10 shadow-lg"
+          : "bg-background border-b border-border/50 md:bg-transparent md:border-transparent"
+        }`}>
         <div className="container">
           <div className="flex h-16 items-center justify-between">
             {/* Premium Logo */}
@@ -93,11 +96,13 @@ export default function Navbar() {
                   <Link
                     key={link.href}
                     href={link.href}
-                    className={`relative px-4 py-1.5 text-sm font-medium rounded-xl transition-all ${
-                      pathname === link.href
+                    className={`relative px-4 py-1.5 text-sm font-medium rounded-xl transition-all ${pathname === link.href
                         ? "text-accent bg-white/5"
                         : "text-muted-foreground hover:text-foreground hover:bg-white/2"
-                    }`}
+                      }`}
+                    style={{
+                      textDecoration: "none !important",
+                    }}
                   >
                     {link.label}
                     {pathname === link.href && (
@@ -119,7 +124,7 @@ export default function Navbar() {
                     checked={isDark}
                     onCheckedChange={handleThemeChange}
                     disabled={!themeMounted}
-                    label={themeStateLabel}
+                    label={themeIcon}
                     labelPosition="left"
                     labelClassName="text-muted-foreground group-hover:text-foreground"
                     ariaLabel={t("nav.theme")}
@@ -133,9 +138,6 @@ export default function Navbar() {
                     checked={isBg}
                     onCheckedChange={handleLanguageChange}
                     disabled={!i18nMounted}
-                    label={languageLabel}
-                    labelPosition="left"
-                    labelClassName="text-muted-foreground group-hover:text-foreground"
                     leftLabel={t("nav.languageToEn")}
                     rightLabel={t("nav.languageToBg")}
                     ariaLabel={t("nav.languageLabel")}
@@ -196,7 +198,10 @@ export default function Navbar() {
                   checked={isDark}
                   onCheckedChange={handleThemeChange}
                   disabled={!themeMounted}
+                  label={themeIconSm}
+                  labelPosition="left"
                   size="sm"
+                  className="gap-1"
                   ariaLabel={t("nav.theme")}
                 />
               </div>
@@ -235,8 +240,8 @@ export default function Navbar() {
       {/* Mobile Navigation Menu - Premium style */}
       {mobileMenuOpen && (
         <div className="fixed inset-0 z-40 md:hidden pt-16">
-          <div 
-            className="absolute inset-0 bg-white"
+          <div
+            className="absolute inset-0 bg-background"
             onClick={closeMobileMenu}
           />
           <div className="relative glass-effect border-t border-white/10 animate-slide-in">
@@ -249,7 +254,7 @@ export default function Navbar() {
                     checked={isDark}
                     onCheckedChange={handleThemeChange}
                     disabled={!themeMounted}
-                    label={themeStateLabel}
+                    label={themeIcon}
                     labelPosition="left"
                     ariaLabel={t("nav.theme")}
                   />
@@ -261,8 +266,6 @@ export default function Navbar() {
                     checked={isBg}
                     onCheckedChange={handleLanguageChange}
                     disabled={!i18nMounted}
-                    label={languageLabel}
-                    labelPosition="left"
                     leftLabel={t("nav.languageToEn")}
                     rightLabel={t("nav.languageToBg")}
                     ariaLabel={t("nav.languageLabel")}
@@ -285,11 +288,10 @@ export default function Navbar() {
                   <Link
                     key={link.href}
                     href={link.href}
-                    className={`flex items-center justify-between px-6 py-4 text-base font-medium rounded-2xl transition-all ${
-                      pathname === link.href
+                    className={`flex items-center justify-between px-6 py-4 text-base font-medium rounded-2xl transition-all ${pathname === link.href
                         ? "bg-accent/10 text-accent border border-accent/20"
                         : "text-muted-foreground hover:text-foreground hover:bg-surface border border-transparent"
-                    }`}
+                      }`}
                     onClick={closeMobileMenu}
                   >
                     <span>{link.label}</span>
@@ -374,3 +376,44 @@ function XIcon(props: React.SVGProps<SVGSVGElement>) {
   );
 }
 
+function SunIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      {...props}
+    >
+      <circle cx="12" cy="12" r="4" />
+      <line x1="12" x2="12" y1="2" y2="4" />
+      <line x1="12" x2="12" y1="20" y2="22" />
+      <line x1="2" x2="4" y1="12" y2="12" />
+      <line x1="20" x2="22" y1="12" y2="12" />
+      <line x1="4.9" x2="6.3" y1="4.9" y2="6.3" />
+      <line x1="17.7" x2="19.1" y1="17.7" y2="19.1" />
+      <line x1="17.7" x2="19.1" y1="6.3" y2="4.9" />
+      <line x1="4.9" x2="6.3" y1="19.1" y2="17.7" />
+    </svg>
+  );
+}
+
+function MoonIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      {...props}
+    >
+      <path d="M12.5 3a8.5 8.5 0 1 0 8.5 8.5A7 7 0 0 1 12.5 3z" />
+    </svg>
+  );
+}

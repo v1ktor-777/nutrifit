@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { useI18n } from "@/lib/i18n/LanguageProvider";
@@ -14,8 +14,85 @@ function formatMessage(template: string, vars: Record<string, string | number>) 
   );
 }
 
+const EXERCISE_NAME_PAIRS: Array<[string, string]> = [
+  ["Bench Press", "Лежанка"],
+  ["Incline DB Press", "Наклонен лег с дъмбели"],
+  ["Overhead Press", "Военна преса"],
+  ["Triceps Pushdown", "Трицепс на скрипец"],
+  ["Pull-ups/Lat Pulldown", "Набирания / Скрипец за гръб"],
+  ["Barbell Row", "Гребане с щанга"],
+  ["Face Pull", "Фейс пул"],
+  ["Biceps Curl", "Бицепсово сгъване"],
+  ["Squat", "Клек"],
+  ["Romanian Deadlift", "Румънска тяга"],
+  ["Leg Press", "Лег преса"],
+  ["Calf Raises", "Повдигания за прасци"],
+  ["Row", "Гребане"],
+  ["Rows", "Гребане"],
+  ["Plank", "Планк"],
+  ["Push-ups", "Лицеви опори"],
+  ["Pike Push-ups", "Лицеви опори пика"],
+  ["Dips (chair)", "Кофички (стол)"],
+  ["Triceps Extensions", "Трицепсово разгъване"],
+  ["Pull-ups (bar)", "Набирания (лост)"],
+  ["Inverted Rows", "Обърнато гребане"],
+  ["Rear Delt Raises", "Повдигания за задно рамо"],
+  ["Biceps Curl (band)", "Бицепсово сгъване (ластик)"],
+  ["Goblet Squat", "Клек с дъмбел"],
+  ["Lunges", "Напади"],
+  ["Hip Hinge (DB/band)", "Хип хиндж (дъмбел/ластик)"],
+];
+
+const EXERCISE_EN_TO_BG = Object.fromEntries(EXERCISE_NAME_PAIRS) as Record<
+  string,
+  string
+>;
+const EXERCISE_BG_TO_EN = Object.fromEntries(
+  EXERCISE_NAME_PAIRS.map(([en, bg]) => [bg, en]),
+) as Record<string, string>;
+
+const FOCUS_NAME_PAIRS: Array<[string, string]> = [
+  ["Full Body", "Цяло тяло"],
+  ["Upper", "Горна част"],
+  ["Lower", "Долна част"],
+  ["Push", "Бутане"],
+  ["Pull", "Дърпане"],
+  ["Legs", "Крака"],
+];
+
+const FOCUS_EN_TO_BG = Object.fromEntries(FOCUS_NAME_PAIRS) as Record<
+  string,
+  string
+>;
+const FOCUS_BG_TO_EN = Object.fromEntries(
+  FOCUS_NAME_PAIRS.map(([en, bg]) => [bg, en]),
+) as Record<string, string>;
+
+function translateExerciseName(name: string, lang: "en" | "bg") {
+  if (lang === "bg") {
+    return EXERCISE_EN_TO_BG[name] ?? name;
+  }
+  return EXERCISE_BG_TO_EN[name] ?? name;
+}
+
+function translateFocus(focus: string, lang: "en" | "bg") {
+  if (lang === "bg") {
+    return FOCUS_EN_TO_BG[focus] ?? focus;
+  }
+  return FOCUS_BG_TO_EN[focus] ?? focus;
+}
+
+function formatDayLabel(day: string, lang: "en" | "bg") {
+  if (lang === "bg") {
+    const match = day.match(/^Day\s*(\d+)/i);
+    return match ? `Ден ${match[1]}` : day;
+  }
+  const match = day.match(/^Ден\s*(\d+)/i);
+  return match ? `Day ${match[1]}` : day;
+}
+
 export default function ProgramPage() {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const [program, setProgram] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [highlightPreview, setHighlightPreview] = useState(false);
@@ -393,18 +470,20 @@ export default function ProgramPage() {
 
             const isSavingThis = savingDay === day.day;
             const isUnmarking = savingDay === "UNMARK";
+            const dayLabel = formatDayLabel(day.day, lang);
+            const focusLabel = translateFocus(day.focus, lang);
 
             return (
               <div key={idx} className="card space-y-3">
                 <h3 className="font-semibold">
-                  {day.day} • {day.focus}
+                  {dayLabel} • {focusLabel}
                 </h3>
 
                 <ul className="text-sm text-muted space-y-1">
                   {day.exercises.map((ex: any, i: number) => (
                     <li key={i}>
                       {formatMessage(t("program.exerciseItem"), {
-                        name: ex.name,
+                        name: translateExerciseName(ex.name, lang),
                         sets: ex.sets,
                         reps: ex.reps,
                       })}
@@ -458,3 +537,6 @@ export default function ProgramPage() {
     </div>
   );
 }
+
+
+

@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useI18n } from "@/lib/i18n/LanguageProvider";
+import { GOAL_STRATEGIES_BY_TYPE, getRecommendedWeeklyRange, type GoalStrategy, type GoalType } from "@/lib/goal";
 import { logError, toUserError } from "@/lib/uiError";
 
 type BodyStat = {
@@ -15,22 +16,62 @@ type ProfileData = {
   sex?: "male" | "female" | null;
 };
 
+type GoalData = {
+  goalType: GoalType;
+  strategy: GoalStrategy;
+  targetWeightKg: number | null;
+  startWeightKg: number | null;
+  targetDate: string | null;
+  weeklyRateKg: number | null;
+  createdAtGoal: string | null;
+  updatedAtGoal: string | null;
+  currentWeightKg: number | null;
+  monthsLeft: number | null;
+  daysLeft: number | null;
+  progressPercent: number | null;
+  requiredWeeklyRateKg: number | null;
+};
+
+type GoalFormState = {
+  goalType: GoalType;
+  strategy: GoalStrategy;
+  targetWeightKg: string;
+  targetDate: string;
+};
+
 function calcBmi(weightKg: number, heightCm: number) {
   const h = heightCm / 100;
   if (h <= 0) return null;
   return weightKg / (h * h);
 }
 
+function formatMessage(template: string, vars: Record<string, string | number>) {
+  return template.replace(/\{(\w+)\}/g, (_, key) =>
+    Object.prototype.hasOwnProperty.call(vars, key) ? String(vars[key]) : `{${key}}`
+  );
+}
+
 export default function ProgressPage() {
   const { t } = useI18n();
   const [items, setItems] = useState<BodyStat[]>([]);
   const [profile, setProfile] = useState<ProfileData | null>(null);
+  const [goal, setGoal] = useState<GoalData | null>(null);
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const [goalSaving, setGoalSaving] = useState(false);
+  const [goalError, setGoalError] = useState<string | null>(null);
+  const [goalOk, setGoalOk] = useState<string | null>(null);
+
   const [weight, setWeight] = useState<string>("");
+  const [goalForm, setGoalForm] = useState<GoalFormState>({
+    goalType: "maintain",
+    strategy: "maintain",
+    targetWeightKg: "",
+    targetDate: "",
+  });
 
   const latest = useMemo(() => {
     if (!items.length) return null;
@@ -53,14 +94,37 @@ export default function ProgressPage() {
     return t("progress.bmiObesity");
   };
 
+  const goalTypeLabels = useMemo(
+    () => ({
+      gain: t("goal.typeGain"),
+      lose: t("goal.typeLose"),
+      maintain: t("goal.typeMaintain"),
+    }),
+    [t]
+  );
+
+  const strategyLabels = useMemo(
+    () => ({
+      lean_bulk: t("goal.strategyLeanBulk"),
+      dirty_bulk: t("goal.strategyDirtyBulk"),
+      cut: t("goal.strategyCut"),
+      recomp: t("goal.strategyRecomp"),
+      maintain: t("goal.strategyMaintain"),
+    }),
+    [t]
+  );
+
   async function load() {
     setError(null);
     setLoading(true);
+    setGoalError(null);
+    setGoalOk(null);
 
     try {
-      const [statsRes, profileRes] = await Promise.all([
+      const [statsRes, profileRes, goalRes] = await Promise.all([
         fetch("/api/body-stats?days=30"),
         fetch("/api/profile"),
+        fetch("/api/goal"),
       ]);
 
       if (!statsRes.ok) {
@@ -68,29 +132,36 @@ export default function ProgressPage() {
         logError("progress.load.stats", { status: statsRes.status, body: txt });
         setError(toUserError({ status: statsRes.status }, t));
         setItems([]);
-        setProfile(null);
-        return;
+      } else {
+        const statsJson = await statsRes.json();
+        setItems(statsJson?.data ?? []);
       }
 
       if (!profileRes.ok) {
         const txt = await profileRes.text().catch(() => "");
         logError("progress.load.profile", { status: profileRes.status, body: txt });
         setError(toUserError({ status: profileRes.status }, t));
-        setItems([]);
         setProfile(null);
-        return;
+      } else {
+        const profileJson = await profileRes.json();
+        setProfile(profileJson?.data ?? null);
       }
 
-      const statsJson = await statsRes.json();
-      const profileJson = await profileRes.json();
-
-      setItems(statsJson?.data ?? []);
-      setProfile(profileJson?.data ?? null);
+      if (!goalRes.ok) {
+        const txt = await goalRes.text().catch(() => "");
+        logError("progress.load.goal", { status: goalRes.status, body: txt });
+        setGoalError(toUserError({ status: goalRes.status }, t));
+        setGoal(null);
+      } else {
+        const goalJson = await goalRes.json();
+        setGoal(goalJson?.data ?? null);
+      }
     } catch (e: unknown) {
       logError("progress.load", e);
       setError(toUserError(e, t));
       setItems([]);
       setProfile(null);
+      setGoal(null);
     } finally {
       setLoading(false);
     }
@@ -99,6 +170,16 @@ export default function ProgressPage() {
   useEffect(() => {
     load();
   }, []);
+
+  useEffect(() => {
+    if (!goal) return;
+    setGoalForm({
+      goalType: goal.goalType,
+      strategy: goal.strategy,
+      targetWeightKg: goal.targetWeightKg == null ? "" : String(goal.targetWeightKg),
+      targetDate: goal.targetDate ?? "",
+    });
+  }, [goal]);
 
   async function submit() {
     setError(null);
@@ -135,6 +216,133 @@ export default function ProgressPage() {
     }
   }
 
+  const strategyOptions = GOAL_STRATEGIES_BY_TYPE[goalForm.goalType];
+
+  const updateGoalType = (value: GoalType) => {
+    const allowed = GOAL_STRATEGIES_BY_TYPE[value];
+    setGoalForm((prev) => ({
+      ...prev,
+      goalType: value,
+      strategy: allowed.includes(prev.strategy) ? prev.strategy : allowed[0],
+      targetWeightKg: value === "maintain" ? "" : prev.targetWeightKg,
+      targetDate: value === "maintain" ? "" : prev.targetDate,
+    }));
+  };
+
+  const updateGoalStrategy = (value: GoalStrategy) => {
+    setGoalForm((prev) => ({ ...prev, strategy: value }));
+  };
+
+  async function saveGoal() {
+    setGoalError(null);
+    setGoalOk(null);
+
+    const targetWeightRaw = goalForm.targetWeightKg.trim();
+    const targetWeightKg =
+      targetWeightRaw === "" ? null : Number(goalForm.targetWeightKg);
+
+    if (targetWeightKg !== null && (!Number.isFinite(targetWeightKg) || targetWeightKg < 0)) {
+      setGoalError(t("goal.invalidTargetWeight"));
+      return;
+    }
+
+    if (goalForm.goalType !== "maintain" && targetWeightKg === null) {
+      setGoalError(t("goal.targetWeightRequired"));
+      return;
+    }
+
+    let targetDate: string | null = goalForm.targetDate.trim() || null;
+    if (targetDate) {
+      const parsed = new Date(targetDate);
+      const today = new Date();
+      const todayDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+      const targetDay = new Date(parsed.getFullYear(), parsed.getMonth(), parsed.getDate());
+      if (!Number.isFinite(parsed.getTime()) || targetDay < todayDay) {
+        setGoalError(t("goal.invalidTargetDate"));
+        return;
+      }
+    }
+
+    setGoalSaving(true);
+    try {
+      const res = await fetch("/api/goal", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          goalType: goalForm.goalType,
+          strategy: goalForm.strategy,
+          targetWeightKg,
+          targetDate,
+        }),
+      });
+
+      const json = await res.json().catch((err) => {
+        logError("goal.save.parse", err);
+        return null;
+      });
+
+      if (!res.ok) {
+        logError("goal.save", { status: res.status, body: json });
+        setGoalError(toUserError({ status: res.status }, t));
+        return;
+      }
+
+      setGoal(json?.data ?? null);
+      setGoalOk(t("goal.saved"));
+    } catch (e: unknown) {
+      logError("goal.save", e);
+      setGoalError(toUserError(e, t));
+    } finally {
+      setGoalSaving(false);
+    }
+  }
+
+  async function resetGoal() {
+    setGoalError(null);
+    setGoalOk(null);
+    setGoalSaving(true);
+
+    try {
+      const res = await fetch("/api/goal", { method: "DELETE" });
+      const json = await res.json().catch((err) => {
+        logError("goal.reset.parse", err);
+        return null;
+      });
+
+      if (!res.ok) {
+        logError("goal.reset", { status: res.status, body: json });
+        setGoalError(toUserError({ status: res.status }, t));
+        return;
+      }
+
+      setGoal(json?.data ?? null);
+      setGoalOk(t("goal.resetDone"));
+    } catch (e: unknown) {
+      logError("goal.reset", e);
+      setGoalError(toUserError(e, t));
+    } finally {
+      setGoalSaving(false);
+    }
+  }
+
+  const selectedRange = getRecommendedWeeklyRange(goalForm.strategy);
+  const goalRange = goal ? getRecommendedWeeklyRange(goal.strategy) : null;
+
+  const progressPercent = goal?.progressPercent ?? (goal?.goalType === "maintain" ? 100 : 0);
+
+  const remainingKg = useMemo(() => {
+    if (!goal || goal.currentWeightKg == null || goal.targetWeightKg == null) return null;
+    if (goal.goalType === "gain") {
+      return Math.max(0, goal.targetWeightKg - goal.currentWeightKg);
+    }
+    if (goal.goalType === "lose") {
+      return Math.max(0, goal.currentWeightKg - goal.targetWeightKg);
+    }
+    return 0;
+  }, [goal]);
+
+  const currentWeightKg = goal?.currentWeightKg ?? latest?.weight ?? null;
+
   if (loading) {
     return <p className="text-muted">{t("common.loading")}</p>;
   }
@@ -153,6 +361,215 @@ export default function ProgressPage() {
           {error}
         </div>
       )}
+
+      <section className="card space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+          <div>
+            <h2 className="text-lg font-semibold">{t("goal.title")}</h2>
+            <p className="text-sm text-muted">{t("goal.subtitle")}</p>
+          </div>
+          {goal ? (
+            <div className="flex flex-wrap items-center gap-2 text-xs text-muted">
+              <span className="inline-flex items-center rounded-full border border-border/60 px-2 py-1">
+                {goalTypeLabels[goal.goalType]}
+              </span>
+              <span className="inline-flex items-center rounded-full border border-border/60 px-2 py-1">
+                {strategyLabels[goal.strategy]}
+              </span>
+            </div>
+          ) : null}
+        </div>
+
+        {(goalError || goalOk) && (
+          <div
+            className={`rounded-lg border px-4 py-3 text-sm ${
+              goalError
+                ? "border-red-300 bg-red-50 text-red-700"
+                : "border-green-300 bg-green-50 text-green-700"
+            }`}
+          >
+            {goalError ?? goalOk}
+          </div>
+        )}
+
+        <div className="grid lg:grid-cols-[1.2fr_1fr] gap-6">
+          <div className="space-y-5">
+            {goal ? (
+              <>
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <div className="rounded-lg border border-border/60 p-3">
+                    <p className="text-xs text-muted">{t("goal.startWeight")}</p>
+                    <p className="text-lg font-semibold">
+                      {goal.startWeightKg != null
+                        ? `${goal.startWeightKg} kg`
+                        : t("common.noData")}
+                    </p>
+                  </div>
+                  <div className="rounded-lg border border-border/60 p-3">
+                    <p className="text-xs text-muted">{t("goal.currentWeight")}</p>
+                    <p className="text-lg font-semibold">
+                      {currentWeightKg != null
+                        ? `${currentWeightKg} kg`
+                        : t("common.noData")}
+                    </p>
+                  </div>
+                  <div className="rounded-lg border border-border/60 p-3">
+                    <p className="text-xs text-muted">{t("goal.targetWeight")}</p>
+                    <p className="text-lg font-semibold">
+                      {goal.targetWeightKg != null
+                        ? `${goal.targetWeightKg} kg`
+                        : t("common.noData")}
+                    </p>
+                  </div>
+                  <div className="rounded-lg border border-border/60 p-3">
+                    <p className="text-xs text-muted">{t("goal.targetDate")}</p>
+                    <p className="text-lg font-semibold">
+                      {goal.targetDate ?? t("common.noData")}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-xs text-muted">
+                    <span>{t("goal.progress")}</span>
+                    <span>{goal.progressPercent != null ? `${progressPercent}%` : t("common.noData")}</span>
+                  </div>
+                  <div className="h-2 rounded-full bg-muted overflow-hidden">
+                    <div
+                      className="h-full bg-gradient-to-r from-accent to-primary"
+                      style={{ width: `${progressPercent}%` }}
+                    />
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap gap-3 text-sm text-muted">
+                  <span>
+                    {remainingKg != null
+                      ? formatMessage(t("goal.remaining"), {
+                          kg: remainingKg.toFixed(1),
+                        })
+                      : t("common.noData")}
+                  </span>
+                  <span>
+                    {goal.daysLeft != null
+                      ? formatMessage(t("goal.daysLeft"), { days: goal.daysLeft })
+                      : t("common.noData")}
+                  </span>
+                  {goal.monthsLeft != null ? (
+                    <span>
+                      {formatMessage(t("goal.monthsLeft"), { months: goal.monthsLeft })}
+                    </span>
+                  ) : null}
+                </div>
+
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <div className="rounded-lg border border-border/60 p-3">
+                    <p className="text-xs text-muted">{t("goal.recommendedRate")}</p>
+                    <p className="text-sm font-semibold">
+                      {goalRange
+                        ? `${goalRange.min}–${goalRange.max} ${t("goal.rateUnit")}`
+                        : t("common.noData")}
+                    </p>
+                  </div>
+                  <div className="rounded-lg border border-border/60 p-3">
+                    <p className="text-xs text-muted">{t("goal.requiredRate")}</p>
+                    <p className="text-sm font-semibold">
+                      {goal.requiredWeeklyRateKg != null
+                        ? `${Math.abs(goal.requiredWeeklyRateKg).toFixed(2)} ${t("goal.rateUnit")}`
+                        : t("common.noData")}
+                    </p>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <p className="text-sm text-muted">{t("goal.noGoal")}</p>
+            )}
+          </div>
+
+          <div className="space-y-4">
+            <div className="space-y-3">
+              <label className="text-sm text-muted">{t("goal.goalType")}</label>
+              <select
+                value={goalForm.goalType}
+                onChange={(e) => updateGoalType(e.target.value as GoalType)}
+              >
+                <option value="gain">{goalTypeLabels.gain}</option>
+                <option value="lose">{goalTypeLabels.lose}</option>
+                <option value="maintain">{goalTypeLabels.maintain}</option>
+              </select>
+              <p className="text-xs text-muted">{t("goal.goalTypeHint")}</p>
+            </div>
+
+            <div className="space-y-3">
+              <label className="text-sm text-muted">{t("goal.strategy")}</label>
+              <select
+                value={goalForm.strategy}
+                onChange={(e) => updateGoalStrategy(e.target.value as GoalStrategy)}
+              >
+                {strategyOptions.map((option) => (
+                  <option key={option} value={option}>
+                    {strategyLabels[option]}
+                  </option>
+                ))}
+              </select>
+              <p className="text-xs text-muted">{t("goal.strategyHint")}</p>
+            </div>
+
+            <div className="space-y-3">
+              <label className="text-sm text-muted">{t("goal.targetWeight")}</label>
+              <input
+                type="number"
+                min={0}
+                step="0.1"
+                value={goalForm.targetWeightKg}
+                onChange={(e) => setGoalForm((prev) => ({ ...prev, targetWeightKg: e.target.value }))}
+                disabled={goalForm.goalType === "maintain"}
+                placeholder={t("progress.weightPlaceholder")}
+              />
+              <p className="text-xs text-muted">{t("goal.targetWeightHint")}</p>
+            </div>
+
+            <div className="space-y-3">
+              <label className="text-sm text-muted">{t("goal.targetDate")}</label>
+              <input
+                type="date"
+                value={goalForm.targetDate}
+                onChange={(e) => setGoalForm((prev) => ({ ...prev, targetDate: e.target.value }))}
+                disabled={goalForm.goalType === "maintain"}
+              />
+              <p className="text-xs text-muted">{t("goal.targetDateHint")}</p>
+            </div>
+
+            <div className="rounded-lg border border-border/60 p-3">
+              <p className="text-xs text-muted">{t("goal.recommendedRate")}</p>
+              <p className="text-sm font-semibold">
+                {selectedRange
+                  ? `${selectedRange.min}–${selectedRange.max} ${t("goal.rateUnit")}`
+                  : t("common.noData")}
+              </p>
+            </div>
+
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3 pt-2">
+              <button
+                type="button"
+                className="btn-primary w-full sm:w-auto"
+                onClick={saveGoal}
+                disabled={goalSaving}
+              >
+                {goalSaving ? t("goal.saving") : t("goal.save")}
+              </button>
+              <button
+                type="button"
+                className="btn-secondary w-full sm:w-auto"
+                onClick={resetGoal}
+                disabled={goalSaving}
+              >
+                {t("goal.reset")}
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
 
       <div className="grid md:grid-cols-3 gap-6">
         <div className="card space-y-2">
